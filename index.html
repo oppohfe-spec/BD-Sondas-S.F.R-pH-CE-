@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a4a34">
+<title>Sondas & S.F.R [pH-CE] · Riego</title>
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#eef2ee; --bg-soft:#e4eae3; --panel:#fff; --line:#dfe6e0;
+  --ink:#16241b; --ink-soft:#4c5c51; --ink-faint:#7c8a80;
+  --primary:#0f6b4c; --primary-dark:#0a4a34; --primary-soft:#dcefe4;
+  --tech:#2f6690; --danger:#c0392b; --danger-soft:#f8e2df; --warning:#d98e2a; --warning-soft:#faedd7;
+  --success:#1e8e5a; --success-soft:#dcf1e6;
+  --s10:#8e5bd1; --s15:#2166f3; --s20:#1e8e5a; --s40:#e07b26; --sfr:#d64545; --obj:#2b2b2b;
+  --r:14px; --rs:8px; --shadow:0 1px 2px rgba(20,35,25,.06), 0 8px 24px -12px rgba(20,35,25,.18);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Roboto Mono",monospace;
+  --sans:Inter,"Segoe UI",Roboto,-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--sans);color:var(--ink);line-height:1.4;-webkit-font-smoothing:antialiased;
+  background:radial-gradient(1200px 600px at 100% -10%, var(--primary-soft) 0%, transparent 60%), var(--bg)}
+button{font-family:inherit;font:inherit;font-weight:700;border:0;border-radius:10px;padding:11px 16px;cursor:pointer}
+input,select,textarea{width:100%;font:inherit;padding:10px 11px;border:1px solid var(--line);border-radius:8px;background:#fbfcfb;color:var(--ink);min-width:0;max-width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--primary);outline-offset:0;border-color:var(--primary)}
+textarea{min-height:70px;resize:vertical}
+.shell{max-width:1360px;margin:0 auto;padding:16px 14px 140px}
+.shell.wide{padding-bottom:48px}
+
+/* Encabezado (como el reporte) */
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;padding:20px 22px;
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary) 65%);border-radius:var(--r);color:#fff;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hdr::after{content:"";position:absolute;right:-40px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 70%)}
+.hdr-brand{display:flex;align-items:center;gap:14px;position:relative;z-index:1}
+.logo-badge{background:#fff;border-radius:12px;padding:7px 10px;display:flex;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.logo-badge img{height:44px;width:auto;display:block}
+.hdr .code{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.82;margin:0 0 4px}
+.hdr h1{margin:0;font-size:24px;letter-spacing:-.01em}
+.hdr .sub{margin:3px 0 0;font-size:13.5px;opacity:.92}
+.hdr-meta{position:relative;z-index:1;display:flex;gap:20px;flex-wrap:wrap;font-family:var(--mono);font-size:12px}
+.hdr-meta div span{display:block;opacity:.7;font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+.hdr-meta div b{font-size:14px}
+@media(max-width:640px){.logo-badge img{height:34px}.hdr h1{font-size:20px}.hdr{padding:16px}.hdr-meta{gap:12px}}
+
+nav.tabs{display:flex;gap:6px;margin:14px 0 0;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:5px;position:sticky;top:6px;z-index:25;box-shadow:var(--shadow)}
+nav.tabs button{flex:1;background:transparent;color:var(--ink-soft);padding:10px 6px;font-size:14.5px;border-radius:9px}
+nav.tabs button.act{background:var(--primary);color:#fff}
+.view{display:none}.view.act{display:block}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px;margin-top:16px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.panel-title{display:flex;align-items:center;gap:9px}
+.panel-title h2{font-size:15.5px;margin:0}
+.panel-title .ic{color:var(--primary);display:flex}
+.panel-sub{font-size:12px;color:var(--ink-faint)}
+label.f{display:block;font-size:11px;color:var(--ink-faint);margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:460px){.grid2{grid-template-columns:1fr}}
+.legend{font-size:12px;color:var(--ink-faint);margin-top:8px}
+
+/* Formulario */
+.sector{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin-top:12px;overflow:hidden;box-shadow:var(--shadow)}
+.sector>summary{list-style:none;cursor:pointer;padding:13px 16px;display:flex;align-items:center;gap:10px;font-weight:700}
+.sector>summary::-webkit-details-marker{display:none}
+.sector>summary .nombre{font-size:16px;color:var(--primary-dark)}
+.sector>summary .obj{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);font-weight:600}
+.sector>summary .cnt{margin-left:auto;font-size:12.5px;color:var(--ink-soft);background:var(--bg-soft);padding:3px 10px;border-radius:20px}
+.sector>summary .cnt.done{color:var(--success);background:var(--success-soft)}
+.chev{transition:transform .2s;color:var(--ink-faint);display:inline-block}
+details[open]>summary .chev{transform:rotate(90deg)}
+.sector[open]>summary{border-bottom:1px solid var(--line)}
+.objrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px 0;font-size:13px;font-weight:700;color:var(--primary-dark)}
+.objrow input{width:96px;text-align:center;font-weight:700}
+.objrow span{font-weight:400;color:var(--ink-faint);font-size:11.5px}
+.copiar{margin:10px 14px 0;background:var(--primary-soft);color:var(--primary-dark);font-size:12.5px;padding:7px 12px;border-radius:8px}
+.est{padding:10px 14px 12px;border-bottom:1px dashed var(--line)}
+.est:last-child{border-bottom:0}
+.est-t{font-weight:700;font-size:13.5px;margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:700;background:var(--primary-soft);color:var(--primary-dark);padding:2px 8px;border-radius:6px}
+.tag.extra{background:var(--warning-soft);color:#8a5a15}
+.tag.pend{background:var(--warning-soft);color:#8a5a15}
+.fila,.fhead{display:grid;grid-template-columns:78px 1fr 1fr;gap:6px;align-items:center}
+.fila{margin-bottom:6px}
+.fhead{font-size:10.5px;color:var(--ink-faint);font-weight:700;text-transform:uppercase;text-align:center;margin-bottom:4px}
+.fila .lbl{font-weight:700;font-size:12.5px;text-align:center;border-radius:6px;padding:9px 0;color:#fff}
+.fila input{padding:9px 6px;text-align:center}
+.fila input.bad{border-color:var(--danger);background:var(--danger-soft)}
+.fila input.warn{border-color:var(--warning);background:var(--warning-soft)}
+.fila input.okv{border-color:#9bd3ae}
+.editb{display:none;background:var(--warning-soft);color:#7a5010;border:1px solid #efd7a5;border-radius:10px;padding:10px 12px;margin-top:14px;font-size:14px}
+.editb.show{display:block}
+.pend{display:none;font-size:13px;background:var(--warning-soft);color:#7a5010;padding:8px 12px;border-radius:10px;margin-top:14px;align-items:center;gap:8px}
+.pend.show{display:flex}
+
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));z-index:30;box-shadow:0 -2px 10px rgba(0,0,0,.06)}
+.bar .in{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+.bar .info{text-align:center;font-size:12px;color:var(--ink-faint)}
+.bar .info b{color:var(--ink);font-size:14px}
+.btns3{display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:8px}
+.btns3 button{padding:12px 8px;font-size:14px;line-height:1.15}
+.btn{background:var(--primary);color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-sec{background:var(--primary-soft);color:var(--primary-dark)}
+.btn-cancel{background:#eef1f5;color:#475467}
+.btn-wa{background:#25d366;color:#fff}
+.btn-wa:disabled{opacity:.5}
+.btn-del{background:var(--danger-soft);color:var(--danger)}
+.btn-pdf{background:#fff;color:var(--primary-dark);border:1.5px solid var(--primary)}
+.btn-sm{padding:7px 12px;font-size:13.5px;border-radius:8px}
+.btn-ghost{background:transparent;color:var(--ink-faint);padding:8px 10px;font-weight:600}
+.ml-auto{margin-left:auto}
+
+.modal{position:fixed;inset:0;background:rgba(10,30,20,.55);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.modal.show{display:flex}
+.sheet{background:#fff;width:100%;max-width:760px;max-height:92vh;overflow:auto;border-radius:16px 16px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+@media(min-width:700px){.modal{align-items:center}.sheet{border-radius:16px}}
+.sheet h2{margin:0 0 10px;font-size:19px;color:var(--primary-dark)}
+pre.resumen{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:12.5px;line-height:1.45;max-height:45vh;overflow:auto;font-family:var(--mono)}
+.alert{padding:10px 12px;border-radius:10px;font-size:14px;margin:8px 0}
+.alert.warn{background:var(--warning-soft);color:#7a5010}
+.alert.err{background:var(--danger-soft);color:var(--danger)}
+.alert.ok{background:var(--success-soft);color:var(--success)}
+.alert.info{background:var(--primary-soft);color:var(--primary-dark)}
+.row-btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.row-btns button{flex:1}
+.spinner{width:18px;height:18px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:inline-block;vertical-align:-3px;animation:sp 1s linear infinite;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* Dashboard (estructura del reporte) */
+.valve-strip{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.valve-chip{flex:1 1 140px;min-width:130px;background:var(--panel);border:1px solid var(--line);border-radius:var(--rs);padding:10px 12px;cursor:pointer;transition:transform .12s, box-shadow .12s}
+.valve-chip:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.valve-chip.active{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-soft)}
+.vc-top{display:flex;align-items:center;justify-content:space-between}
+.vc-name{font-weight:700;font-size:13px}
+.vc-ring{width:11px;height:11px;border-radius:50%;box-shadow:0 0 0 3px rgba(0,0,0,.04)}
+.vc-dev{font-family:var(--mono);font-size:16px;font-weight:700;margin-top:6px}
+.vc-lbl{font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.06em}
+.filtros{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:end}
+@media(max-width:1100px){.filtros{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:560px){.filtros{grid-template-columns:1fr 1fr}}
+.filtros>*{min-width:0}
+.filtros.f5{grid-template-columns:repeat(5,1fr)}
+@media(max-width:900px){.filtros.f5{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.filtros.f5{grid-template-columns:1fr 1fr}}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.toolbar .meta{font-size:12px;color:var(--ink-faint)}
+.chips{display:inline-flex;background:var(--bg-soft);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.chips button{background:transparent;color:var(--ink-soft);padding:7px 16px;font-size:13.5px;border-radius:8px}
+.chips button.act{background:#fff;color:var(--primary-dark);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi-card{border:1px solid var(--line);border-radius:var(--rs);padding:14px 16px;background:#fbfdfb}
+.kpi-card .k-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);font-weight:700}
+.kpi-card .k-value{font-family:var(--mono);font-size:24px;font-weight:700;margin-top:6px}
+.kpi-card .k-foot{font-size:11.5px;color:var(--ink-faint);margin-top:4px}
+.kpi-card.state-NORMAL{border-left:4px solid var(--success)}
+.kpi-card.state-ALERTA{border-left:4px solid var(--warning)}
+.kpi-card.state-CRITICO{border-left:4px solid var(--danger)}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.NORMAL{background:var(--success-soft);color:var(--success)}
+.pill.ALERTA{background:var(--warning-soft);color:#8a5a15}
+.pill.CRITICO{background:var(--danger-soft);color:var(--danger)}
+.pill.ND{background:var(--bg-soft);color:var(--ink-faint)}
+.dev-up{color:var(--danger)}.dev-down{color:var(--tech)}
+.alert-list{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow:auto}
+.alert-item{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;font-size:13px;border:1px solid transparent}
+.alert-item.ALERTA{background:var(--warning-soft);border-color:#efd7a5;color:#7a5010}
+.alert-item.CRITICO{background:var(--danger-soft);border-color:#efc3bd;color:#8f2c20}
+.alert-empty{font-size:13px;color:var(--ink-faint);padding:6px 2px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.two>.panel{margin-top:16px}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+.two>*{min-width:0}
+.chart-box{position:relative;height:320px}
+.chart-box.sm{height:280px}
+.chart-msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.85);font-size:13px;color:var(--ink-faint)}
+.table-scroll{overflow:auto;border-radius:10px;border:1px solid var(--line);max-height:430px}
+table.dt{width:100%;border-collapse:collapse;font-size:12.8px;font-variant-numeric:tabular-nums}
+table.dt th{text-align:left;padding:9px 10px;background:var(--bg-soft);color:var(--ink-soft);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;position:sticky;top:0;cursor:pointer;user-select:none}
+table.dt th.n,table.dt td.n{text-align:center}
+table.dt td{padding:8px 10px;border-top:1px solid var(--line);white-space:nowrap}
+table.dt tr:hover td{background:#f5f9f5}
+td.c-bad{background:var(--danger-soft);color:var(--danger);font-weight:700}
+td.c-warn{background:var(--warning-soft);color:#8a5a15;font-weight:700}
+.rank-bar{height:6px;border-radius:3px;background:var(--bg-soft);margin-top:5px;overflow:hidden;width:150px}
+.rank-bar i{display:block;height:100%;border-radius:3px}
+.search{padding:8px 10px;border-radius:8px;border:1px solid var(--line);font-size:13px;width:230px;max-width:100%}
+.pager{display:flex;align-items:center;gap:10px;justify-content:flex-end;margin-top:12px;font-size:12.5px;color:var(--ink-soft)}
+.pager button{background:var(--bg-soft);border:1px solid var(--line);border-radius:7px;padding:5px 10px;font-weight:600}
+.pager button:disabled{opacity:.4;cursor:not-allowed}
+.demo{background:var(--warning-soft);color:#7a5010;border:1px solid #efd7a5}
+body.reporte #barRegistro, body.reporte .solo-vivo, body.reporte #v-registro, body.reporte #v-historial{display:none!important}
+.foot{text-align:center;font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-top:24px}
+
+/* Historial */
+.hitem{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-top:10px;overflow:hidden;box-shadow:var(--shadow)}
+.hitem>summary{list-style:none;cursor:pointer;padding:12px 14px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center}
+.hitem>summary::-webkit-details-marker{display:none}
+.hitem .fch{font-weight:800;color:var(--primary-dark);font-size:15px}
+.hitem .who{font-size:13px;color:var(--ink-faint)}
+.hitem .vals{font-size:13px;grid-column:2/4}
+.hbody{padding:0 14px 14px;border-top:1px solid var(--line)}
+.hbody .obs{font-size:13px;background:var(--bg);border-radius:8px;padding:8px 10px;margin:10px 0}
+.hacc{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.hacc button{flex:1 1 120px}
+/* ---- Sondas & SFR ---- */
+:root{ --ph:#7b3fa0; }
+.grid3{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:12px}
+@media(max-width:560px){.grid3{grid-template-columns:1fr 1fr}.grid3>.span-m{grid-column:1/-1}}
+.secrow{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:10px;padding:12px 14px 0}
+.secrow input{text-align:center;font-weight:700}
+.secrow label.f{margin-bottom:3px}
+.fila,.fhead{grid-template-columns:96px 1fr 1fr}
+.fila .lbl{font-size:12px;padding:9px 2px;line-height:1.1}
+.filtros.f8{grid-template-columns:repeat(8,1fr)}
+@media(max-width:1200px){.filtros.f8{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:560px){.filtros.f8{grid-template-columns:1fr 1fr}}
+nav.tabs button{font-size:14px}
+@media(max-width:520px){nav.tabs button{font-size:12.5px;padding:10px 3px}}
+.var-badge{font-family:var(--mono);font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;background:var(--primary-soft);color:var(--primary-dark)}
+.var-badge.ph{background:#efe4f6;color:var(--ph)}
+.hitem .tagfen{font-size:11px;color:var(--ink-faint)}
+td.sec-sep td{border-top:2px solid var(--line)}
+/* Gráficos por estación (como las hojas CE y PH del RI-FO-019) */
+.g-sector{margin-top:16px}
+.g-sector:first-child{margin-top:4px}
+.g-head{background:#d9e1f2;color:#1f2d3d;font-weight:800;font-size:17px;text-align:center;padding:7px;border-radius:6px;letter-spacing:.02em}
+.g-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px;margin-top:10px}
+@media(max-width:420px){.g-grid{grid-template-columns:1fr}}
+.g-card{border:1.5px solid #1b1b1b;border-radius:3px;background:#fff;overflow:hidden;min-width:0}
+.g-top{display:flex;align-items:stretch;border-bottom:1.5px solid #1b1b1b;font-size:12px}
+.g-top>span{display:flex;align-items:center;padding:6px 8px}
+.g-sec{font-weight:800;border-right:1.5px solid #1b1b1b}
+.g-tit{font-weight:800;border-right:1.5px solid #1b1b1b;white-space:nowrap}
+.g-leg{gap:8px;flex-wrap:wrap;flex:1;font-size:10.5px;color:#555;min-width:0}
+.g-leg b{font-weight:600;white-space:nowrap}
+.g-leg i{display:inline-block;width:18px;height:2px;vertical-align:middle;margin-right:3px;position:relative}
+.g-leg i::after{content:"";position:absolute;left:6px;top:-2px;width:6px;height:6px;border-radius:50%;background:inherit}
+.g-fecha{background:#fff2cc;font-weight:800;border-left:1.5px solid #1b1b1b;white-space:nowrap}
+.g-box{position:relative;height:280px;padding:6px 6px 2px}
+@media(max-width:640px){.g-box{height:250px}.g-top{flex-wrap:wrap}.g-leg{order:3;flex-basis:100%;border-top:1px solid #ddd}}
+body.reporte nav.tabs button[data-tab="registro"], body.reporte nav.tabs button[data-tab="historial"]{display:none!important}
+</style>
+</head>
+<body>
+<div class="shell" id="shell">
+
+<header class="hdr">
+  <div>
+    <div class="hdr-brand">
+      <div class="logo-badge"><img alt="Hortifrut" src="data:image/png;base64,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"></div>
+      <div>
+        <p class="code">RI-FO-019 · V001</p>
+        <h1>Sondas &amp; S.F.R [pH-CE]</h1>
+      </div>
+    </div>
+    <p class="sub">Control de pH y Conductividad Eléctrica (CE) en la solución de fertirriego (SFR) y sondas de profundidad · Riego · HFE Berries Olmos</p>
+  </div>
+  <div class="hdr-meta">
+    <div><span>Actualizado</span><b id="mAct">–</b></div>
+    <div><span>Última fecha con datos</span><b id="mUlt">–</b></div>
+    <div><span>Lecturas analizadas</span><b id="mReg">–</b></div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button data-tab="registro" class="act">Registro</button>
+  <button data-tab="ce">Dashboard CE</button>
+  <button data-tab="ph">Dashboard pH</button>
+  <button data-tab="historial">Historial</button>
+</nav>
+
+<!-- ===================== REGISTRO ===================== -->
+<section class="view act" id="v-registro">
+  <div class="pend" id="pendBox"><span id="pendTxt"></span>
+    <button class="btn-sec btn-sm ml-auto" onclick="reintentarPendientes(true)">Reintentar</button></div>
+  <div class="editb" id="editBanner">✏️ <b id="editTxt"></b></div>
+  <section class="panel">
+    <div class="grid3">
+      <div><label class="f" for="fecha">Fecha</label><input type="date" id="fecha"></div>
+      <div class="span-m"><label class="f" for="responsable">Responsable</label><input type="text" id="responsable" placeholder="Nombre y apellido" autocomplete="name"></div>
+      <div><label class="f" for="campana">Campaña</label><input type="text" id="campana" inputmode="numeric" placeholder="2627"></div>
+    </div>
+    <div class="legend" id="semTxt"></div>
+    <div class="legend" id="leyenda"></div>
+  </section>
+  <div id="sectores"></div>
+  <section class="panel">
+    <label class="f" for="obs">Observaciones generales</label>
+    <textarea id="obs" placeholder="Sondas sin muestra, incidencias en la solución, equipos, etc."></textarea>
+  </section>
+</section>
+
+<!-- ===================== DASHBOARDS (se generan con JS) ===================== -->
+<section class="view" id="v-ce"></section>
+<section class="view" id="v-ph"></section>
+
+<!-- ===================== HISTORIAL ===================== -->
+<section class="view" id="v-historial">
+  <section class="panel">
+    <div class="filtros f5" id="hFiltros">
+      <div><label class="f" for="hCamp">Campaña</label><select id="hCamp"></select></div>
+      <div><label class="f" for="hSem">Semana</label><select id="hSem"></select></div>
+      <div><label class="f" for="hDesde">Fecha desde</label><input type="date" id="hDesde"></div>
+      <div><label class="f" for="hHasta">Fecha hasta</label><input type="date" id="hHasta"></div>
+      <div><label class="f" for="hSector">Sector (detalle)</label><select id="hSector"></select></div>
+    </div>
+    <div class="toolbar">
+      <span class="meta" id="hMeta"></span>
+      <button class="btn-sec btn-sm ml-auto" onclick="exportarCSV()" title="Mismo formato que la hoja Base de datos del RI-FO-019">Exportar CSV (Base de datos)</button>
+      <button class="btn-sec btn-sm" onclick="cargarDatos(true)">Actualizar</button>
+    </div>
+  </section>
+  <div id="hLista"></div>
+  <div class="pager" id="hPager"></div>
+</section>
+</div>
+
+<div class="bar" id="barRegistro">
+  <div class="in">
+    <div class="info"><b id="cntTxt">0 / 0</b> estaciones con datos</div>
+    <div class="btns3">
+      <button class="btn-cancel" id="btnCancelar" onclick="cancelar()">Cancelar</button>
+      <button class="btn" id="btnRegistrar" onclick="abrirRevision('registrar')">Registrar</button>
+      <button class="btn-wa" id="btnRegWa" onclick="abrirRevision('whatsapp')">Registrar y enviar WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="mRevision"><div class="sheet">
+  <h2 id="revTitulo">Revisar registro</h2>
+  <div id="revAlertas"></div>
+  <pre class="resumen" id="revTexto"></pre>
+  <div class="row-btns">
+    <button class="btn-sec" onclick="cerrar('mRevision')">Volver</button>
+    <button class="btn" id="btnEnviar" onclick="enviar()">Registrar</button>
+  </div>
+</div></div>
+
+<div class="modal" id="mOk"><div class="sheet">
+  <h2 id="okTitulo">Registro guardado</h2>
+  <div id="okMsg"></div>
+  <p style="font-size:14px;color:var(--ink-faint);margin:10px 0" id="okWaTxt"></p>
+  <button class="btn-wa" style="width:100%;font-size:16px;padding:14px" onclick="abrirWhatsApp(registroActual)">Enviar resumen por WhatsApp</button>
+  <div class="row-btns">
+    <button class="btn-sec" onclick="copiarResumen(registroActual)">Copiar resumen</button>
+    <button class="btn" onclick="cerrar('mOk')">Cerrar</button>
+  </div>
+</div></div>
+
+<script>
+/* =====================================================================
+   CONFIGURACIÓN — editar aquí
+   ===================================================================== */
+const CONFIG = {
+  // URL de la implementación del Apps Script de SONDAS & SFR (termina en /exec)
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbyrmQZNIwlfaSnTUgz1JiuMKbePMhQqQS0rpM4Kh1om410jqe0da95oDQF4E4doTBS_qQ/exec',
+  // WhatsApp destino con código de país, sin "+" (ej. 51987654321). "" = elegir chat/grupo al enviar.
+  WA_NUMERO: '',
+  PH_RANGO: [0, 14],          // solo validación de digitación
+  CE_MAX: 10                  // CE máxima aceptada al digitar (dS/m)
+};
+/* Parámetros por defecto (la app usa los de la hoja "Parametros" de Sheets cuando están disponibles) */
+let PARAM = {
+  objetivos: {
+    O1E1:{ce:1.00,ph:7}, O1E2:{ce:1.00,ph:7}, O2E1:{ce:1.00,ph:7}, O2E2:{ce:1.00,ph:7}, O3E1:{ce:0.92,ph:7}, O3E2:{ce:1.00,ph:7},
+    MANILA:{ce:1.03,ph:7}, MADEIRA:{ce:1.00,ph:7}, 'FALLCREEK17-132':{ce:0.90,ph:7}, 'FALLCREEK14-057':{ce:0.90,ph:7}, 'HB-161':{ce:1.03,ph:6.5}
+  },
+  ceNormalMax:10, ceAlertaMax:20, ceBandaPct:10, ceGap:0.30,
+  phNormalMax:0.3, phAlertaMax:0.5, phBanda:0.3, phGap:0.8
+};
+
+/* Estaciones del formulario: sector, módulo, parcela y profundidades (SFR + sondas) */
+const ESTACIONES = [
+  ['O1E1','3','3.5',['SFR','15 cm']], ['O1E1','4','4.3',['SFR','15 cm','20 cm','40 cm']], ['O1E1','4','4.5',['SFR','15 cm','20 cm','40 cm']],
+  ['O1E2','2','2.1',['SFR','15 cm','20 cm','40 cm']], ['O1E2','3','3.5',['SFR','15 cm','20 cm','40 cm']],
+  ['O2E1','1','1.3',['SFR','15 cm','20 cm','40 cm']], ['O2E1','2','2.5',['SFR','15 cm','20 cm','40 cm']],
+  ['O2E1','3','3.3',['SFR','15 cm','20 cm','40 cm']], ['O2E1','5','5.1',['SFR','15 cm','20 cm','40 cm']],
+  ['O2E2','1','1.4',['SFR','15 cm','20 cm','40 cm']], ['O2E2','2','2.2',['SFR','15 cm','20 cm','40 cm']],
+  ['O2E2','5','4.1',['SFR','15 cm','20 cm','40 cm']], ['O2E2','5','5.5',['SFR','15 cm','20 cm','40 cm']],
+  ['O3E1','1','1.1',['SFR','15 cm']], ['O3E1','2','2.3',['SFR','15 cm']],
+  ['O3E1','3','3.4',['SFR','15 cm','20 cm','40 cm']], ['O3E1','4','4.4',['SFR','15 cm','20 cm','40 cm']],
+  ['O3E2','T1','3.2',['SFR','15 cm']], ['O3E2','T1','3.5',['SFR','15 cm']], ['O3E2','T2','3.5',['SFR','15 cm']], ['O3E2','T3','3.11',['SFR','15 cm']],
+  ['MANILA','JV - V2','6.7',['SFR','15 cm']], ['MADEIRA','JV - V3','6.7',['SFR','15 cm']],
+  ['FALLCREEK17-132','JV17-132 - V1','6.7',['SFR','15 cm']], ['FALLCREEK14-057','JV14-057 - V4','6.7',['SFR','15 cm']],
+  ['HB-161','JV - V6','6.7',['SFR','15 cm']]
+].map(([sector, modulo, parcela, prof]) => ({ sector, modulo, parcela, prof }));
+const SECTORES = ['O1E1','O1E2','O2E1','O2E2','O3E1','O3E2','MANILA','MADEIRA','FALLCREEK17-132','FALLCREEK14-057','HB-161'];
+const FENOLOGIAS = ['Poda','Activación de yemas','Brotamiento','Floración','Productiva'];
+const P_SFR = 'SFR', P_OBJ = 'OBJ.';
+const COLOR = { 'SFR':'#FF0000', '10 cm':'#8e5bd1', '15 cm':'#1631FA', '20 cm':'#00B050', '40 cm':'#ED7D31', obj:'#2b2b2b', ok:'#1e8e5a', alerta:'#d98e2a', critico:'#c0392b', nd:'#c7d1cb' };
+const COLOR_EXTRA = ['#0e9aa7','#b5651d','#6c757d','#c2185b','#7cb342','#5c6bc0'];
+
+/* =====================================================================
+   Utilidades
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const LS_DRAFT='snd_borrador_v1', LS_PEND='snd_pendientes_v1', LS_RESP='snd_responsable', LS_CACHE='snd_cache_v1';
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+const REPORTE = window.__REPORTE__ || null;   // presente solo en un HTML descargado con "Generar HTML"
+let VER_VALORES = store.get('snd_ver_valores', !(window.matchMedia && matchMedia('(max-width:640px)').matches));
+const pad2 = n => String(n).padStart(2,'0');
+const ZONA = 'America/Lima';
+function partesLima(d = new Date()){
+  const o = {};
+  new Intl.DateTimeFormat('en-GB', { timeZone:ZONA, year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hourCycle:'h23' })
+    .formatToParts(d).forEach(p => o[p.type] = p.value);
+  return o;
+}
+const hoyISO = () => { const p = partesLima(); return `${p.year}-${p.month}-${p.day}`; };
+const ahoraLimaTxt = () => { const p = partesLima(); return `${p.day}/${p.month}/${p.year} ${p.hour}:${p.minute}`; };
+const fmtFecha = iso => { if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
+const num = v => { if(v===''||v==null) return null; const n=parseFloat(String(v).replace(',','.')); return isNaN(n)?null:n; };
+const pos0 = v => { const n = num(v); return n==null || n<=0 ? null : n; };          // 0 = sin muestra
+const f2 = n => n==null||isNaN(n) ? 'N/D' : Number(n).toFixed(2);
+const r2 = n => n==null ? '–' : (Math.round(n*100)/100).toString();
+const pct = n => n==null||isNaN(n) ? 'N/D' : (n>0?'+':'') + n.toFixed(1) + '%';
+const dif = n => { if(n==null||isNaN(n)) return 'N/D'; const r = Math.round(n*100)/100; return (r>0?'+':'') + (r===0?0:r).toFixed(2); };
+const prom = arr => { const a=arr.filter(x=>x!=null && !isNaN(x)); return a.length ? a.reduce((s,x)=>s+x,0)/a.length : null; };
+const uid = () => 'S'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,6).toUpperCase();
+const esc = s => String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esDemo = () => !CONFIG.GAS_URL || CONFIG.GAS_URL.includes('PEGAR_AQUI');
+const colorProf = p => { if(COLOR[p]) return COLOR[p]; let h=0; for(const c of String(p)) h=(h*31+c.charCodeAt(0))>>>0; return COLOR_EXTRA[h%COLOR_EXTRA.length]; };
+const profNum = p => p===P_SFR ? -1 : (parseFloat(p) || 999);
+const ordenProf = (a,b) => profNum(a)-profNum(b) || String(a).localeCompare(String(b));
+const esSonda = p => p!==P_SFR && p!==P_OBJ;
+const claveEst = e => `${e.sector}|${e.modulo}|${e.parcela}`;
+const nombreEst = e => `Mód. ${e.modulo} · Parc. ${e.parcela}`;
+const ordenSector = (a,b) => { const i=SECTORES.indexOf(a), j=SECTORES.indexOf(b); return (i<0?99:i)-(j<0?99:j) || a.localeCompare(b); };
+const ordenEst = (a,b) => ordenSector(a.sector,b.sector) || String(a.modulo).localeCompare(String(b.modulo),'es',{numeric:true}) || String(a.parcela).localeCompare(String(b.parcela),'es',{numeric:true});
+
+/* Variables: CE (desviación %) y pH (diferencia en unidades) */
+const VARS = {
+  CE: { L:'CE', k:'ce', u:'dS/m', titulo:'Conductividad eléctrica', devLbl:'Desviación', devTxt:'(SFR − objetivo) / objetivo',
+        dev:(v,o) => (v!=null && o) ? (v-o)/o*100 : null, fdev: pct,
+        nMax:() => PARAM.ceNormalMax, aMax:() => PARAM.ceAlertaMax, gap:() => PARAM.ceGap,
+        banda:o => [o*(1-PARAM.ceBandaPct/100), o*(1+PARAM.ceBandaPct/100)], bandaTxt:() => `±${PARAM.ceBandaPct}%`,
+        umbral:() => `|desv.| ≤${PARAM.ceNormalMax}% normal · ≤${PARAM.ceAlertaMax}% alerta · mayor crítico` },
+  PH: { L:'pH', k:'ph', u:'', titulo:'pH', devLbl:'Diferencia', devTxt:'pH SFR − pH objetivo',
+        dev:(v,o) => (v!=null && o) ? v-o : null, fdev: dif,
+        nMax:() => PARAM.phNormalMax, aMax:() => PARAM.phAlertaMax, gap:() => PARAM.phGap,
+        banda:o => [o-PARAM.phBanda, o+PARAM.phBanda], bandaTxt:() => `±${PARAM.phBanda}`,
+        umbral:() => `|dif.| ≤${PARAM.phNormalMax} normal · ≤${PARAM.phAlertaMax} alerta · mayor crítico` }
+};
+function estadoDe(V, dev){ if(dev==null||isNaN(dev)) return null; const a=Math.abs(dev), M=VARS[V]; return a<=M.nMax() ? 'NORMAL' : a<=M.aMax() ? 'ALERTA' : 'CRITICO'; }
+const colorEstado = e => e==='NORMAL'?COLOR.ok : e==='ALERTA'?COLOR.alerta : e==='CRITICO'?COLOR.critico : COLOR.nd;
+const peorEstado = (...es) => es.includes('CRITICO') ? 'CRITICO' : es.includes('ALERTA') ? 'ALERTA' : es.includes('NORMAL') ? 'NORMAL' : null;
+const objPar = (s, V) => { const o = PARAM.objetivos[s]; return o ? (o[VARS[V].k] ?? null) : null; };
+
+/* Semana ISO, día de muestreo (L = lun-mié, J = jue-dom) y EJE X como en el RI-FO-019 */
+function semanaISO(iso){
+  const [y,m,d] = iso.split('-').map(Number);
+  const t = new Date(Date.UTC(y,m-1,d)); const dia = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate()+4-dia);
+  const anio = t.getUTCFullYear();
+  return { anio, sem: Math.ceil(((t - Date.UTC(anio,0,1))/864e5 + 1)/7), dia };
+}
+function infoFecha(iso){ const {anio, sem, dia} = semanaISO(iso); const diaM = dia<=3 ? 'L' : 'J'; return { anio, sem, key: anio*100+sem, diaM, ejeX:`S ${sem}-${diaM}` }; }
+const MESES_EN = {Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+function normalizarFecha(v){
+  if(v==null || v==='') return '';
+  const s = String(v).trim(); let m;
+  if((m = s.match(/^(\d{4})-(\d{2})-(\d{2})/))) return `${m[1]}-${m[2]}-${m[3]}`;
+  if((m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/))) return `${m[3]}-${pad2(m[2])}-${pad2(m[1])}`;
+  if((m = s.match(/^[A-Za-z]{3},? ([A-Za-z]{3}) (\d{1,2}),? (\d{4})/)) && MESES_EN[m[1]]) return `${m[3]}-${pad2(MESES_EN[m[1]])}-${pad2(m[2])}`;
+  const d = new Date(s); return isNaN(d) ? '' : `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+}
+const val = (f, p, V) => f.v[p] ? f.v[p][V] : null;
+const objF = (f, V) => f.obj[V] ?? objPar(f.sector, V);
+
+/* Objetivos y fenología editables por registro: por defecto, el último usado en el sector */
+let OBJ = {}, OBJ_TOCADO = {}, FEN = {}, FEN_TOCADO = {}, CAMP_TOCADA = false;
+const objDe = (s, V) => (OBJ[s] && OBJ[s][V] !== undefined) ? OBJ[s][V] : objPar(s, V);
+function ultimoDe(s, fn){ for(const e of (DATA.envios||[])){ for(const f of e.filas){ if(f.sector===s){ const v = fn(f); if(v!=null && v!=='') return v; } } } return null; }
+function sugerirObjetivos(){
+  [...new Set(FORM.map(e=>e.sector))].forEach(s => {
+    OBJ[s] = OBJ[s] || {};
+    ['CE','PH'].forEach(V => { if(!OBJ_TOCADO[s+'|'+V]) OBJ[s][V] = ultimoDe(s, f => f.obj[V]) ?? objPar(s, V); });
+    if(!FEN_TOCADO[s]) FEN[s] = ultimoDe(s, f => f.fen) || '';
+  });
+  if(!CAMP_TOCADA && !$('#campana').value){ const c = (DATA.envios||[]).find(e=>e.camp); if(c) $('#campana').value = c.camp; }
+  refrescarObjetivos();
+}
+function refrescarObjetivos(){
+  $$('#sectores input[data-obj]').forEach(i => { const v = objDe(i.dataset.obj, i.dataset.v); if(document.activeElement!==i) i.value = v==null?'':v; });
+  $$('#sectores select[data-fen]').forEach(sel => {
+    const v = FEN[sel.dataset.fen] || '';
+    if(v && ![...sel.options].some(o=>o.value===v)) sel.insertAdjacentHTML('beforeend', `<option>${esc(v)}</option>`);
+    sel.value = v;
+  });
+  $$('#sectores [data-objtxt]').forEach(t => { const s = t.dataset.objtxt; t.textContent = `CE ${f2(objDe(s,'CE'))} · pH ${f2(objDe(s,'PH'))}${FEN[s]?' · '+FEN[s]:''}`; });
+  $$('#sectores input[data-p="SFR"]').forEach(validarInput);
+}
+
+/* =====================================================================
+   Pestañas
+   ===================================================================== */
+function irA(tab){
+  $$('nav.tabs button').forEach(b => b.classList.toggle('act', b.dataset.tab===tab));
+  $$('.view').forEach(v => v.classList.toggle('act', v.id==='v-'+tab));
+  const reg = tab==='registro';
+  $('#barRegistro').style.display = reg ? '' : 'none';
+  $('#shell').classList.toggle('wide', !reg);
+  if(!reg){ if(!DATA.cargado) cargarDatos(false); else renderTab(tab); }
+  window.scrollTo({top:0});
+}
+function renderTab(tab){ if(tab==='ce') renderDash(DASH.CE); else if(tab==='ph') renderDash(DASH.PH); else if(tab==='historial') renderHistorial(); }
+const tabActual = () => (document.querySelector('nav.tabs button.act')||{dataset:{}}).dataset.tab;
+$$('nav.tabs button').forEach(b => b.addEventListener('click', () => irA(b.dataset.tab)));
+
+/* =====================================================================
+   REGISTRO
+   ===================================================================== */
+let FORM = ESTACIONES.map(e => ({...e, prof:[...e.prof]}));   // en edición puede incluir estaciones/profundidades extra
+const sectoresDe = lista => [...new Set(lista.map(e=>e.sector))].sort(ordenSector);
+const inpDe = (i, p, V) => document.querySelector(`#sectores input[data-i="${i}"][data-p="${String(p).replace(/"/g,'\\"')}"][data-v="${V}"]`);
+
+function renderFormulario(){
+  $('#leyenda').innerHTML = `El CE y pH objetivo y la fenología de cada sector se pueden cambiar en cada registro (por defecto, los últimos usados). SFR fuera de rango se marca en naranja (alerta) o rojo (crítico): CE ${VARS.CE.umbral()}; pH ${VARS.PH.umbral()}.`;
+  $('#sectores').innerHTML = sectoresDe(FORM).map((s,si) => {
+    const ests = FORM.map((e,i)=>({...e, i})).filter(e=>e.sector===s);
+    const nSfr = ests.filter(e=>e.prof.includes(P_SFR)).length;
+    return `<details class="sector" ${si===0?'open':''}>
+      <summary><span class="chev">▶</span><span class="nombre">${esc(s)}</span><span class="obj" data-objtxt="${esc(s)}"></span><span class="cnt" data-cnt="${esc(s)}">0/0</span></summary>
+      <div class="secrow">
+        <div><label class="f">Fenología</label><select data-fen="${esc(s)}"><option value="">—</option>${FENOLOGIAS.map(f=>`<option>${esc(f)}</option>`).join('')}</select></div>
+        <div><label class="f">CE objetivo</label><input data-obj="${esc(s)}" data-v="CE" inputmode="decimal" aria-label="CE objetivo ${esc(s)}"></div>
+        <div><label class="f">pH objetivo</label><input data-obj="${esc(s)}" data-v="PH" inputmode="decimal" aria-label="pH objetivo ${esc(s)}"></div>
+      </div>
+      ${nSfr>1?`<button class="copiar" onclick="copiarSFR('${esc(s)}')">↧ Copiar SFR de la 1.ª estación a todo ${esc(s)}</button>`:''}
+      ${ests.map(e => `<div class="est">
+        <div class="est-t">${esc(nombreEst(e))} ${e.extra?'<span class="tag extra">del registro</span>':''}</div>
+        <div class="fhead"><span></span><span>CE</span><span>pH</span></div>
+        ${e.prof.map(p => `<div class="fila"><div class="lbl" style="background:${colorProf(p)}">${esc(p)}</div>
+            <input data-i="${e.i}" data-p="${esc(p)}" data-v="CE" inputmode="decimal" placeholder="CE" aria-label="${esc(s)} ${esc(nombreEst(e))} ${esc(p)} CE">
+            <input data-i="${e.i}" data-p="${esc(p)}" data-v="PH" inputmode="decimal" placeholder="pH" aria-label="${esc(s)} ${esc(nombreEst(e))} ${esc(p)} pH"></div>`).join('')}
+      </div>`).join('')}
+    </details>`;
+  }).join('');
+  refrescarObjetivos();
+}
+$('#sectores').addEventListener('input', e => {
+  const t = e.target;
+  if(t.dataset.p){ validarInput(t); guardarBorrador(); actualizarConteo(); }
+  if(t.dataset.obj){ const s = t.dataset.obj; OBJ[s] = OBJ[s] || {}; OBJ[s][t.dataset.v] = num(t.value); OBJ_TOCADO[s+'|'+t.dataset.v] = true; refrescarObjetivos(); guardarBorrador(); }
+});
+$('#sectores').addEventListener('change', e => {
+  const t = e.target;
+  if(t.dataset.fen!==undefined){ FEN[t.dataset.fen] = t.value; FEN_TOCADO[t.dataset.fen] = true; refrescarObjetivos(); guardarBorrador(); }
+});
+['fecha','responsable','obs','campana'].forEach(id => $('#'+id).addEventListener('input', guardarBorrador));
+$('#campana').addEventListener('input', () => CAMP_TOCADA = true);
+$('#fecha').addEventListener('input', mostrarSemana);
+$('#responsable').addEventListener('change', () => store.set(LS_RESP, $('#responsable').value.trim()));
+
+function mostrarSemana(){
+  const f = $('#fecha').value;
+  $('#semTxt').innerHTML = f ? (i => `<b>Semana ${i.sem}</b> · Eje X <b>${i.ejeX}</b>`)(infoFecha(f)) : '';
+}
+function validarInput(inp){
+  const v = num(inp.value), V = inp.dataset.v, p = inp.dataset.p;
+  inp.classList.remove('bad','warn','okv');
+  if(inp.value.trim()==='') return;
+  if(v==null || v<=0){ inp.classList.add('bad'); return; }
+  if(V==='PH' && (v<CONFIG.PH_RANGO[0] || v>CONFIG.PH_RANGO[1])){ inp.classList.add('bad'); return; }
+  if(V==='CE' && v>CONFIG.CE_MAX){ inp.classList.add('bad'); return; }
+  if(p===P_SFR && FORM[+inp.dataset.i]){
+    const s = FORM[+inp.dataset.i].sector, est = estadoDe(V, VARS[V].dev(v, objDe(s, V)));
+    inp.classList.add(est==='CRITICO'?'bad':est==='ALERTA'?'warn':'okv'); return;
+  }
+  inp.classList.add('okv');
+}
+function copiarSFR(s){
+  const ests = FORM.map((e,i)=>({...e,i})).filter(e=>e.sector===s && e.prof.includes(P_SFR));
+  const ce = inpDe(ests[0].i, P_SFR, 'CE').value, ph = inpDe(ests[0].i, P_SFR, 'PH').value;
+  if(!ce && !ph){ alert('Primero ingresa el SFR de la primera estación de ' + s + '.'); return; }
+  ests.slice(1).forEach(e => {
+    const a = inpDe(e.i, P_SFR, 'CE'), b = inpDe(e.i, P_SFR, 'PH');
+    if(ce){ a.value = ce; validarInput(a); } if(ph){ b.value = ph; validarInput(b); }
+  });
+  guardarBorrador(); actualizarConteo();
+}
+const tieneDato = e => Object.values(e.lect||{}).some(l => l && (l.ce!=null || l.ph!=null));
+function leerDatos(){
+  const out = FORM.map(e => ({ sector:e.sector, modulo:e.modulo, parcela:e.parcela, lect:{} }));
+  $$('#sectores input[data-p]').forEach(i => {
+    const o = out[+i.dataset.i], p = i.dataset.p; o.lect[p] = o.lect[p] || { ce:null, ph:null };
+    o.lect[p][i.dataset.v==='CE'?'ce':'ph'] = pos0(i.value);
+  });
+  return out;
+}
+function actualizarConteo(){
+  const d = leerDatos(), h = d.filter(tieneDato).length;
+  $('#cntTxt').textContent = `${h} / ${d.length}`;
+  sectoresDe(FORM).forEach(s => {
+    const el = document.querySelector(`[data-cnt="${s}"]`); if(!el) return;
+    const ds = d.filter(x=>x.sector===s), hh = ds.filter(tieneDato).length;
+    el.textContent = `${hh}/${ds.length}`; el.classList.toggle('done', hh===ds.length && ds.length>0);
+  });
+}
+function guardarBorrador(){
+  if(typeof EDIT!=='undefined' && EDIT) return;
+  const vals = {};
+  $$('#sectores input[data-p]').forEach(i => { if(i.value) vals[claveEst(FORM[+i.dataset.i])+'|'+i.dataset.p+'|'+i.dataset.v] = i.value; });
+  const objs = {}; Object.keys(OBJ_TOCADO).forEach(k => { const [s,V] = k.split('|'); objs[k] = (OBJ[s]||{})[V] ?? null; });
+  const fens = {}; Object.keys(FEN_TOCADO).forEach(s => fens[s] = FEN[s]);
+  store.set(LS_DRAFT, { fecha:$('#fecha').value, responsable:$('#responsable').value, campana:$('#campana').value, campTocada:CAMP_TOCADA, obs:$('#obs').value, vals, objs, fens });
+}
+function cargarBorrador(){
+  const b = store.get(LS_DRAFT, null);
+  $('#fecha').value = (b && b.fecha) || hoyISO();
+  $('#responsable').value = (b && b.responsable) || store.get(LS_RESP, '');
+  $('#obs').value = (b && b.obs) || '';
+  if(b && b.campTocada){ $('#campana').value = b.campana || ''; CAMP_TOCADA = true; }
+  if(b && b.objs) Object.keys(b.objs).forEach(k => { const [s,V] = k.split('|'); OBJ[s] = OBJ[s] || {}; OBJ[s][V] = b.objs[k]; OBJ_TOCADO[k] = true; });
+  if(b && b.fens) Object.keys(b.fens).forEach(s => { FEN[s] = b.fens[s]; FEN_TOCADO[s] = true; });
+  refrescarObjetivos();
+  if(b && b.vals) $$('#sectores input[data-p]').forEach(i => { const v=b.vals[claveEst(FORM[+i.dataset.i])+'|'+i.dataset.p+'|'+i.dataset.v]; if(v!=null){ i.value=v; validarInput(i); } });
+  mostrarSemana(); actualizarConteo();
+}
+function vaciarFormulario(){
+  $$('#sectores input[data-p]').forEach(i => { i.value=''; i.classList.remove('bad','warn','okv'); });
+  $('#obs').value=''; $('#fecha').value=hoyISO(); mostrarSemana(); actualizarConteo();
+}
+
+/* ---------- Resumen por sector (revisión, WhatsApp, historial y PDF) ---------- */
+function resumenVar(es, s, V, obj){
+  const k = VARS[V].k;
+  const sfr = prom(es.map(e => e.lect[P_SFR] ? e.lect[P_SFR][k] : null));
+  const sonV = es.flatMap(e => Object.keys(e.lect).filter(esSonda).map(p => e.lect[p][k]));
+  const d15 = prom(es.map(e => e.lect['15 cm'] ? e.lect['15 cm'][k] : null)), d40 = prom(es.map(e => e.lect['40 cm'] ? e.lect['40 cm'][k] : null));
+  const dev = VARS[V].dev(sfr, obj);
+  return { sfr, son: prom(sonV), obj, dev, estado: estadoDe(V, dev), gap: (d15!=null && d40!=null) ? Math.abs(d15-d40) : null };
+}
+function resumenSectores(ests, sectores){
+  sectores = sectores || {};
+  return sectoresDe(ests).map(s => {
+    const es = ests.filter(e=>e.sector===s), c = sectores[s] || {};
+    const ce = resumenVar(es, s, 'CE', c.objCE ?? objPar(s,'CE')), ph = resumenVar(es, s, 'PH', c.objPH ?? objPar(s,'PH'));
+    return { sector:s, fen:c.fen||'', CE:ce, PH:ph, estado: peorEstado(ce.estado, ph.estado), n: es.filter(tieneDato).length, total: es.length };
+  });
+}
+/* Alertas a partir de resúmenes { sector, sfr, obj, dev, estado, gap } de una variable */
+function alertasVar(V, lista){
+  const out = [], M = VARS[V];
+  lista.forEach(r => {
+    if(r.estado && r.estado!=='NORMAL') out.push({ nivel:r.estado, V, sector:r.sector,
+      t: V==='CE' ? `${r.sector}: CE SFR ${f2(r.sfr)} con desviación de ${pct(r.dev)} respecto al objetivo (${f2(r.obj)}).`
+                  : `${r.sector}: pH SFR ${f2(r.sfr)} difiere ${dif(r.dev)} del pH objetivo (${f2(r.obj)}).` });
+    if(r.gap!=null && r.gap >= M.gap()) out.push({ nivel: r.gap >= M.gap()*1.6 ? 'CRITICO' : 'ALERTA', V, sector:r.sector,
+      t:`${r.sector}: diferencia importante de ${M.L} entre 15 y 40 cm (Δ = ${f2(r.gap)}).` });
+  });
+  return out;
+}
+const ordenAlertas = a => a.sort((x,y)=>(y.nivel==='CRITICO')-(x.nivel==='CRITICO'));
+const alertasDeResumen = res => ordenAlertas([...alertasVar('CE', res.map(r=>({sector:r.sector, ...r.CE}))), ...alertasVar('PH', res.map(r=>({sector:r.sector, ...r.PH})))]);
+
+let registroActual = null;
+function construirRegistro(){
+  const sectores = {};
+  sectoresDe(FORM).forEach(s => sectores[s] = { fen: FEN[s] || '', objCE: objDe(s,'CE'), objPH: objDe(s,'PH') });
+  return { id: uid(), fecha: $('#fecha').value, responsable: $('#responsable').value.trim(), campana: $('#campana').value.trim(),
+           observaciones: $('#obs').value.trim(), enviadoEn: new Date().toISOString(), dispositivo: navigator.userAgent.slice(0,120),
+           estaciones: leerDatos(), sectores };
+}
+function textoResumen(reg){
+  const L = [], inf = infoFecha(reg.fecha), con = reg.estaciones.filter(tieneDato), res = resumenSectores(reg.estaciones, reg.sectores).filter(r => r.n > 0);
+  const ico = e => e==='NORMAL'?'✅':e==='ALERTA'?'⚠️':e==='CRITICO'?'⛔':'▫️';
+  L.push('*SONDAS & S.F.R [pH-CE] – RIEGO*');
+  L.push(`📅 Fecha: ${fmtFecha(reg.fecha)} · ${inf.ejeX}${reg.campana?' · Campaña '+reg.campana:''}`);
+  L.push(`👤 Responsable: ${reg.responsable || '—'}`);
+  L.push(`📍 Estaciones registradas: ${con.length}/${reg.estaciones.length}`);
+  L.push(''); L.push('*SFR vs objetivo por sector*');
+  res.forEach(r => {
+    L.push(`${ico(r.estado)} *${r.sector}*${r.fen?' · '+r.fen:''}`);
+    L.push(`    CE ${f2(r.CE.sfr)} / obj ${f2(r.CE.obj)} (${pct(r.CE.dev)}) · pH ${f2(r.PH.sfr)} / obj ${f2(r.PH.obj)} (${dif(r.PH.dev)})`);
+  });
+  const al = alertasDeResumen(res);
+  L.push('');
+  if(al.length){ L.push(`*Alertas (${al.length})*`); al.forEach(a => L.push('– '+a.t)); } else L.push('✅ Sin alertas');
+  L.push(''); L.push('*Detalle* (CE / pH)');
+  res.forEach(r => {
+    L.push(`_${r.sector}_`);
+    reg.estaciones.filter(e=>e.sector===r.sector && tieneDato(e)).forEach(e => {
+      const seg = Object.keys(e.lect).sort(ordenProf).filter(p => e.lect[p].ce!=null || e.lect[p].ph!=null)
+        .map(p => `${p==='SFR'?'SFR':p.replace(' cm','')} ${r2(e.lect[p].ce)}/${r2(e.lect[p].ph)}`);
+      L.push(`${nombreEst(e)} → ${seg.join(' · ')}`);
+    });
+  });
+  if(reg.observaciones){ L.push(''); L.push('📝 Obs: '+reg.observaciones); }
+  L.push(''); L.push(`Código: ${reg.codigo || 'pendiente de asignar'}`);
+  return L.join('\n');
+}
+
+/* ---------- Envío ---------- */
+let MODO = 'registrar', EDIT = null;
+function abrirRevision(modo){
+  MODO = modo;
+  const reg = construirRegistro(), avisos = [];
+  if(EDIT){ reg.id = EDIT.id; avisos.push(['info','Se reemplazará el registro existente en Sheets.']); }
+  if(!reg.fecha) avisos.push(['err','Ingresa la fecha.']);
+  if(!reg.responsable) avisos.push(['err','Ingresa el nombre del responsable.']);
+  const h = reg.estaciones.filter(tieneDato).length;
+  if(!h) avisos.push(['err','No hay ninguna estación con datos.']);
+  else if(h < reg.estaciones.length) avisos.push(['warn',`${reg.estaciones.length-h} estación(es) sin datos. No se guardarán.`]);
+  const malos = $$('#sectores input[data-p].bad').length;
+  if(malos) avisos.push(['warn',`${malos} valor(es) marcados en rojo: revisa la digitación.`]);
+  const al = alertasDeResumen(resumenSectores(reg.estaciones, reg.sectores));
+  if(al.length) avisos.push(['warn',`${al.length} alerta(s) de pH/CE.`]);
+  $('#revTitulo').textContent = EDIT ? 'Revisar cambios' : 'Revisar registro';
+  $('#revAlertas').innerHTML = avisos.map(([t,m])=>`<div class="alert ${t}">${m}</div>`).join('');
+  $('#revTexto').textContent = reg.fecha ? textoResumen(reg) : '';
+  const btn = $('#btnEnviar');
+  btn.className = modo==='whatsapp' ? 'btn-wa' : 'btn';
+  btn.textContent = modo==='whatsapp' ? (EDIT?'Guardar y enviar WhatsApp':'Registrar y enviar WhatsApp') : (EDIT?'Guardar cambios':'Registrar');
+  btn.dataset.txt = btn.textContent;
+  btn.disabled = avisos.some(a=>a[0]==='err');
+  registroActual = reg;
+  $('#mRevision').classList.add('show');
+}
+function cerrar(id){ $('#'+id).classList.remove('show'); }
+
+async function postGAS(op){
+  if(esDemo()) throw new Error('GAS_URL no configurada');
+  const r = await fetch(CONFIG.GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(op) });
+  const j = await r.json();
+  if(!j.ok) throw new Error(j.error || 'Error en el servidor');
+  return j;
+}
+function encolar(op){
+  const pend = store.get(LS_PEND, []);
+  const idx = pend.findIndex(p => p.id===op.id);
+  if(idx>=0){
+    if((pend[idx].accion||'guardar')==='guardar'){ if(op.accion==='eliminar') pend.splice(idx,1); else pend[idx] = { ...op, accion:'guardar' }; }
+    else pend[idx] = op;
+  } else pend.push(op);
+  store.set(LS_PEND, pend);
+}
+async function ejecutarOp(op){
+  if(esDemo()){
+    if(op.accion!=='eliminar' && !op.codigo) op.codigo = codigoLocal(DATA.raw, op.fecha);
+    if(DATA.raw) aplicarOpRaw(DATA.raw, op);
+    return { estado:'demo', j:{ codigo:op.codigo } };
+  }
+  if(store.get(LS_PEND, []).find(p => p.id===op.id && (p.accion||'guardar')==='guardar')){ encolar(op); return { estado:'cola', msg:'registro aún no subido' }; }
+  try{
+    const j = await postGAS(op);
+    if(j.codigo) op.codigo = j.codigo;
+    if(DATA.raw){ aplicarOpRaw(DATA.raw, op); guardarCache(DATA.raw); }
+    return { estado:'ok', j };
+  }catch(err){ encolar(op); return { estado:'cola', msg: err.message }; }
+}
+async function enviar(){
+  const btn = $('#btnEnviar');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Guardando…';
+  const reg = { ...registroActual, accion: EDIT ? 'actualizar' : 'guardar', codigo: EDIT ? EDIT.codigo : '' };
+  const res = await ejecutarOp(reg);
+  btn.disabled = false; btn.textContent = btn.dataset.txt;
+  cerrar('mRevision');
+  const eraEdicion = !!EDIT;
+  const msg = {
+    ok:   `<div class="alert ok">${eraEdicion?'Cambios guardados':'Guardado'} en Google Sheets.<br>Código: <b>${esc(reg.codigo)}</b></div>`,
+    demo: `<div class="alert warn">Modo demostración (código ${esc(reg.codigo)}): configura GAS_URL para guardar en Sheets.</div>`,
+    cola: `<div class="alert warn">No se pudo conectar con Sheets (${esc(res.msg||'')}). Quedó guardado en este equipo y se subirá automáticamente cuando haya conexión.</div>`
+  }[res.estado];
+  terminarEdicion(false);
+  if(DATA.raw){ procesarDatos(DATA.raw); prepararTodo(); }
+  OBJ = {}; OBJ_TOCADO = {}; FEN = {}; FEN_TOCADO = {};
+  if(eraEdicion){ FORM = ESTACIONES.map(e => ({...e, prof:[...e.prof]})); renderFormulario(); }
+  sugerirObjetivos();
+  vaciarFormulario();
+  if(eraEdicion) cargarBorrador(); else store.del(LS_DRAFT);
+  actualizarPendientes();
+  registroActual = reg;
+  if(MODO==='whatsapp') abrirWhatsApp(reg);
+  $('#okTitulo').textContent = res.estado==='cola' ? 'Registro en cola' : (eraEdicion ? 'Cambios guardados' : 'Registro guardado');
+  $('#okMsg').innerHTML = msg;
+  $('#okWaTxt').textContent = MODO==='whatsapp' ? 'Si WhatsApp no se abrió, usa el botón:' : 'Puedes enviar el resumen por WhatsApp si lo necesitas.';
+  $('#mOk').classList.add('show');
+}
+function abrirWhatsApp(reg){
+  window.location.href = `${CONFIG.WA_NUMERO ? 'https://wa.me/'+CONFIG.WA_NUMERO : 'https://wa.me/'}?text=${encodeURIComponent(textoResumen(reg))}`;
+}
+async function copiarResumen(reg){
+  try{ await navigator.clipboard.writeText(textoResumen(reg)); alert('Resumen copiado'); } catch(e){ alert('No se pudo copiar'); }
+}
+function cancelar(){
+  if(EDIT){ if(!confirm('¿Descartar los cambios de este registro?')) return; terminarEdicion(true); return; }
+  if(!leerDatos().some(tieneDato) && !$('#obs').value){ vaciarFormulario(); return; }
+  if(!confirm('¿Cancelar el registro y borrar todos los valores ingresados?')) return;
+  vaciarFormulario(); store.del(LS_DRAFT);
+}
+
+/* ---------- Edición desde el historial ---------- */
+function editarEnvio(e){
+  if(!EDIT && leerDatos().some(tieneDato) && !confirm('El formulario tiene datos sin registrar. ¿Reemplazarlos por el registro a editar? (se conservan como borrador)')) return;
+  if(!EDIT) guardarBorrador();
+  // Formulario = estaciones configuradas + estaciones/profundidades del registro que no estén en la configuración
+  const f = ESTACIONES.map(x => ({...x, prof:[...x.prof]}));
+  e.filas.forEach(r => {
+    let x = f.find(z => claveEst(z)===r.ekey);
+    if(!x){ x = { sector:r.sector, modulo:r.modulo, parcela:r.parcela, prof:[], extra:true }; f.push(x); }
+    Object.keys(r.v).forEach(p => { if(!x.prof.includes(p)) x.prof.push(p); });
+    x.prof.sort(ordenProf);
+  });
+  FORM = f.sort(ordenEst);
+  EDIT = { id:e.id, codigo:e.codigo||'' };
+  OBJ = {}; OBJ_TOCADO = {}; FEN = {}; FEN_TOCADO = {};
+  sectoresDe(FORM).forEach(s => {
+    const fs = e.filas.filter(x=>x.sector===s);
+    OBJ[s] = { CE: (fs.find(x=>x.obj.CE!=null)||{obj:{}}).obj.CE ?? objPar(s,'CE'), PH: (fs.find(x=>x.obj.PH!=null)||{obj:{}}).obj.PH ?? objPar(s,'PH') };
+    OBJ_TOCADO[s+'|CE'] = OBJ_TOCADO[s+'|PH'] = true;
+    FEN[s] = (fs.find(x=>x.fen)||{}).fen || ''; FEN_TOCADO[s] = true;
+  });
+  renderFormulario();
+  $('#fecha').value = e.fecha; $('#responsable').value = e.responsable; $('#obs').value = e.observaciones || ''; $('#campana').value = e.camp || '';
+  e.filas.forEach(r => {
+    const i = FORM.findIndex(z => claveEst(z)===r.ekey);
+    Object.keys(r.v).forEach(p => ['CE','PH'].forEach(V => { const inp = inpDe(i, p, V); if(inp && r.v[p][V]!=null){ inp.value = r.v[p][V]; validarInput(inp); } }));
+  });
+  $('#editTxt').textContent = `Editando ${e.codigo || 'registro'} del ${fmtFecha(e.fecha)} · ${e.responsable}`;
+  $('#editBanner').classList.add('show');
+  $('#btnCancelar').textContent = 'Cancelar edición'; $('#btnRegistrar').textContent = 'Guardar cambios'; $('#btnRegWa').textContent = 'Guardar y enviar WhatsApp';
+  mostrarSemana(); actualizarConteo(); irA('registro');
+}
+function terminarEdicion(recargar){
+  EDIT = null;
+  $('#editBanner').classList.remove('show');
+  $('#btnCancelar').textContent = 'Cancelar'; $('#btnRegistrar').textContent = 'Registrar'; $('#btnRegWa').textContent = 'Registrar y enviar WhatsApp';
+  if(recargar){
+    OBJ = {}; OBJ_TOCADO = {}; FEN = {}; FEN_TOCADO = {}; CAMP_TOCADA = false; $('#campana').value = '';
+    FORM = ESTACIONES.map(e => ({...e, prof:[...e.prof]})); renderFormulario(); sugerirObjetivos(); vaciarFormulario(); cargarBorrador();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+}
+async function eliminarEnvio(e){
+  if(!confirm(`¿Eliminar el registro ${e.codigo||''} del ${fmtFecha(e.fecha)} (${e.responsable})?\nSe borrarán sus filas en la Base de datos de Sheets. Esta acción no se puede deshacer.`)) return;
+  const res = await ejecutarOp({ accion:'eliminar', id:e.id });
+  if(DATA.raw) procesarDatos(DATA.raw);
+  actualizarPendientes(); prepararTodo(); renderHistorial();
+  alert(res.estado==='cola' ? 'Sin conexión: la eliminación se aplicará cuando vuelva la señal.' : 'Registro eliminado.');
+}
+function actualizarPendientes(){
+  const n = store.get(LS_PEND, []).length;
+  $('#pendBox').classList.toggle('show', n>0);
+  $('#pendTxt').textContent = `${n} operación(es) pendiente(s) de subir a Sheets.`;
+}
+async function reintentarPendientes(manual){
+  const pend = store.get(LS_PEND, []);
+  if(!pend.length || esDemo()){ if(manual && esDemo()) alert('Configura GAS_URL primero.'); return; }
+  const quedan = [];
+  for(const op of pend){ try{ await postGAS(op); }catch(e){ quedan.push(op); } }
+  store.set(LS_PEND, quedan);
+  if(quedan.length < pend.length) DATA.cargado = false;
+  actualizarPendientes();
+  if(manual) alert(quedan.length ? `Aún quedan ${quedan.length} pendientes.` : 'Todo se subió a Sheets.');
+}
+
+/* =====================================================================
+   DATOS
+   Formato del servidor: envios [id, fecha, resp, obs, codigo, campaña] · est [[sector, módulo, parcela]] · prof [...] · fen [...]
+                         registros [idxEnvío, idxEst, idxProf, pH, CE, idxFen]
+   ===================================================================== */
+const DATA = { cargado:false, raw:null, filas:[], envios:[], actualizado:null, fuente:'' };
+let PROFS_SONDA = ['15 cm','20 cm','40 cm'];
+
+function codigoLocal(raw, iso){
+  const [y,m,d] = iso.split('-'), base = `SND-${d}${m}${y.slice(-2)}-`;
+  let max = 0;
+  (raw?.envios||[]).forEach(e => { const c = String(e[4]||''); if(c.startsWith(base)) max = Math.max(max, parseInt(c.slice(base.length),10)||0); });
+  return base + String(max+1).padStart(4,'0');
+}
+function idxDe(lista, valor, igual){ let k = lista.findIndex(igual); if(k<0){ k = lista.length; lista.push(valor); } return k; }
+/* Aplica una operación sobre el formato del servidor (mismo criterio que Code.gs) */
+function aplicarOpRaw(raw, op){
+  if(!raw) return;
+  raw.prof = raw.prof || []; raw.fen = raw.fen || [];
+  const ie = raw.envios.findIndex(e => e[0]===op.id);
+  if(ie >= 0){
+    raw.envios.splice(ie, 1);
+    raw.registros = raw.registros.filter(r => r[0]!==ie).map(r => r[0] > ie ? [r[0]-1, ...r.slice(1)] : r);
+  }
+  if(op.accion==='eliminar') return;
+  const nuevo = raw.envios.length;
+  raw.envios.push([op.id, op.fecha, op.responsable, op.observaciones||'', op.codigo||'', op.campana||'']);
+  (op.estaciones||[]).forEach(e => {
+    const lect = e.lect || {}, profs = Object.keys(lect).filter(p => lect[p] && (lect[p].ce!=null || lect[p].ph!=null));
+    if(!profs.length) return;
+    const sec = (op.sectores||{})[e.sector] || {}, mod = String(e.modulo), par = String(e.parcela);
+    const k = idxDe(raw.est, [e.sector, mod, par], x => x[0]===e.sector && x[1]===mod && x[2]===par);
+    const fi = sec.fen ? idxDe(raw.fen, sec.fen, x => x===sec.fen) : null;
+    const add = (p, ph, ce) => raw.registros.push([nuevo, k, idxDe(raw.prof, p, x => x===p), ph ?? null, ce ?? null, fi]);
+    profs.forEach(p => add(p, lect[p].ph, lect[p].ce));
+    if(sec.objCE!=null || sec.objPH!=null) add(P_OBJ, sec.objPH, sec.objCE);
+  });
+}
+function clonarRaw(r){ return { envios:r.envios.map(x=>[...x]), est:r.est.map(x=>[...x]), prof:[...(r.prof||[])], fen:[...(r.fen||[])], registros:r.registros.map(x=>[...x]) }; }
+
+function procesarDatos(rawServidor){
+  const raw = clonarRaw(rawServidor);
+  raw.envios.forEach(e => e[1] = normalizarFecha(e[1]));
+  const pendIds = new Set();
+  if(!REPORTE) store.get(LS_PEND, []).forEach(op => { aplicarOpRaw(raw, { accion:'guardar', ...op }); if(op.accion!=='eliminar') pendIds.add(op.id); });
+  const envios = raw.envios.map(e => ({ id:e[0], fecha:e[1], responsable:e[2], observaciones:e[3]||'', codigo:e[4]||'', camp:String(e[5]??'').trim(),
+                                        filas:[], pend:pendIds.has(e[0]), ...infoFecha(e[1]||'2000-01-01') }));
+  const filas = [], mapa = new Map(), profs = new Set();
+  raw.registros.forEach(r => {
+    const env = envios[r[0]], est = raw.est[r[1]], p = raw.prof[r[2]]; if(!env || !est || !env.fecha || p==null) return;
+    const clave = r[0]+'|'+r[1];
+    let f = mapa.get(clave);
+    if(!f){
+      const e = { sector:String(est[0]), modulo:String(est[1]), parcela:String(est[2]) };
+      f = { id:env.id, fecha:env.fecha, sem:env.sem, key:env.key, anio:env.anio, diaM:env.diaM, ejeX:env.ejeX, camp:env.camp, ...e,
+            ekey:claveEst(e), est:nombreEst(e), fen:'', obj:{ CE:null, PH:null }, v:{}, pend:env.pend };
+      mapa.set(clave, f); filas.push(f); env.filas.push(f);
+    }
+    const ph = pos0(r[3]), ce = pos0(r[4]);
+    if(r[5]!=null && raw.fen[r[5]]) f.fen = raw.fen[r[5]];
+    if(p===P_OBJ){ if(ce!=null) f.obj.CE = ce; if(ph!=null) f.obj.PH = ph; }
+    else if(ce!=null || ph!=null){ f.v[p] = { CE:ce, PH:ph }; if(esSonda(p)) profs.add(p); }
+  });
+  envios.forEach(e => e.filas.sort(ordenEst));
+  PROFS_SONDA = [...profs].sort(ordenProf);
+  DATA.filas = filas;
+  DATA.envios = envios.filter(e=>e.filas.length && e.fecha).sort((a,b) => b.fecha.localeCompare(a.fecha) || String(b.codigo).localeCompare(String(a.codigo)));
+}
+function guardarCache(raw){ if(DATA.fuente!=='demo') store.set(LS_CACHE, { raw, param:PARAM, ts:Date.now() }); }
+
+let CARGANDO = null;
+function aplicarRaw(raw, fuente, ts){
+  DATA.raw = raw; DATA.fuente = fuente; DATA.actualizado = ts;
+  procesarDatos(raw);
+  DATA.cargado = true;
+  $$('.demo-banner').forEach(b => b.style.display = fuente==='demo' ? '' : 'none');
+  prepararTodo(); actualizarMeta();
+  if(!EDIT) sugerirObjetivos();
+  renderTab(tabActual());
+}
+function cargarDatos(forzar){
+  if(REPORTE) return Promise.resolve();
+  if(CARGANDO) return CARGANDO;
+  CARGANDO = (async () => {
+    if(esDemo()){ aplicarRaw((DATA.fuente==='demo' && DATA.raw) ? DATA.raw : datosDemo(), 'demo', new Date()); return; }
+    const c = store.get(LS_CACHE, null);
+    if(c && !DATA.cargado){ if(c.param) PARAM = c.param; aplicarRaw(c.raw, 'cache', new Date(c.ts)); }
+    $$('.data-meta').forEach(m => m.textContent = DATA.cargado ? 'Actualizando…' : 'Cargando…');
+    $('#hMeta').textContent = DATA.cargado ? 'Actualizando…' : 'Cargando…';
+    try{
+      const r = await fetch(CONFIG.GAS_URL + '?accion=datos&t=' + Date.now());
+      const j = await r.json();
+      if(!j.ok) throw new Error(j.error||'Error');
+      const raw = { envios:j.envios||[], est:j.est||[], prof:j.prof||[], fen:j.fen||[], registros:j.registros||[] };
+      const paramCambio = j.parametros && JSON.stringify(j.parametros) !== JSON.stringify(PARAM);
+      if(j.parametros) PARAM = j.parametros;
+      const igual = !paramCambio && c && DATA.cargado && JSON.stringify(c.raw) === JSON.stringify(raw);
+      DATA.fuente = 'sheets'; guardarCache(raw);
+      if(igual){ DATA.actualizado = new Date(); actualizarMeta(); }
+      else { if(paramCambio && !EDIT){ renderFormulario(); cargarBorrador(); } aplicarRaw(raw, 'sheets', new Date()); }
+    }catch(err){
+      if(!DATA.cargado) aplicarRaw(c ? c.raw : {envios:[],est:[],prof:[],fen:[],registros:[]}, c ? 'cache' : 'error', c ? new Date(c.ts) : new Date());
+      else { DATA.fuente = 'cache'; actualizarMeta(); }
+    }
+  })().finally(() => { CARGANDO = null; });
+  return CARGANDO;
+}
+function actualizarMeta(){
+  const fuenteTxt = { demo:'Datos de demostración', sheets:'Sheets', cache:'Sin conexión: datos guardados', error:'No se pudo cargar', reporte:'Reporte descargado · datos al' }[DATA.fuente] || '';
+  const cuando = DATA.actualizado ? DATA.actualizado.toLocaleString('es-PE',{ timeZone:ZONA, dateStyle:'short', timeStyle:'short' }) : '–';
+  $$('.data-meta').forEach(m => m.textContent = `${fuenteTxt} · ${cuando}`);
+  $('#mAct').textContent = cuando;
+  $('#mUlt').textContent = DATA.envios.length ? fmtFecha(DATA.envios[0].fecha) : '–';
+  $('#mReg').textContent = DATA.filas.reduce((s,f)=>s+Object.values(f.v).reduce((a,x)=>a+(x.CE!=null)+(x.PH!=null),0),0).toLocaleString('es-PE');
+  if(DATA.cargado && $('#v-historial').classList.contains('act')) $('#hMeta').textContent = `${enviosFiltrados().length} registro(s)`;
+}
+
+/* Carga diferida de librerías */
+function cargarScript(src){
+  return new Promise((ok, no) => { const s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=()=>{ s.remove(); no(new Error(src)); }; document.head.appendChild(s); });
+}
+async function cargarLibs(listas){
+  for(const urls of listas){ let hecho=false; for(const u of urls){ try{ await cargarScript(u); hecho=true; break; }catch(e){} } if(!hecho) throw new Error('No se pudo cargar una librería (revisa la conexión a internet).'); }
+}
+let CHART_CARGA = null;
+function cargarChart(){
+  if(window.Chart) return Promise.resolve();
+  if(!CHART_CARGA) CHART_CARGA = cargarLibs([['https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js','https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js']])
+    .then(() => { Chart.defaults.font.family = getComputedStyle(document.body).fontFamily; Chart.defaults.color = '#4c5c51'; Chart.defaults.borderColor = '#e6ece7'; })
+    .catch(e => { CHART_CARGA = null; throw e; });
+  return CHART_CARGA;
+}
+
+/* =====================================================================
+   DASHBOARDS INDEPENDIENTES (CE y pH)
+   Cada uno tiene sus propios filtros, sector de detalle, gráficos, ranking, tabla y exportaciones.
+   ===================================================================== */
+const ICO = {
+  filtro:'<path d="M3 6h18M6 12h12M10 18h4"/>', kpi:'<path d="M5 20V10M12 20V4M19 20v-7"/>', alerta:'<path d="M12 3 2 21h20L12 3zM12 10v5M12 18h.01"/>',
+  evo:'<path d="M3 17l6-6 4 4 8-8"/>', perfil:'<path d="M4 20V8M10 20V4M16 20v-9M22 20H2"/>', comp:'<path d="M3 20h18M6 16V9M10 16V6M14 16v-5M18 16V8"/>',
+  rank:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/>', tabla:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/>'
+};
+const ico = k => `<span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICO[k]}</svg></span>`;
+function htmlDash(V){
+  const M = VARS[V], I = id => `${V}_${id}`;
+  return `
+  <div class="alert demo demo-banner" style="display:none;margin-top:14px">Datos de demostración: configura <b>GAS_URL</b> para ver los datos reales de Sheets.</div>
+  <div class="valve-strip" id="${I('strip')}"></div>
+  <section class="panel">
+    <div class="panel-head">
+      <div class="panel-title">${ico('filtro')}<h2>Filtros · Dashboard ${M.L}</h2><span class="var-badge ${V==='PH'?'ph':''}">${M.L}</span></div>
+      <div class="panel-sub" id="${I('filtroSub')}">Los filtros afectan KPIs, gráficos, ranking y tabla</div>
+    </div>
+    <div class="filtros f8">
+      <div><label class="f" for="${I('fCamp')}">Campaña</label><select id="${I('fCamp')}"></select></div>
+      <div><label class="f" for="${I('fSem')}">Semana</label><select id="${I('fSem')}"></select></div>
+      <div><label class="f" for="${I('fDesde')}">Fecha desde</label><input type="date" id="${I('fDesde')}"></div>
+      <div><label class="f" for="${I('fHasta')}">Fecha hasta</label><input type="date" id="${I('fHasta')}"></div>
+      <div><label class="f" for="${I('fSector')}">Sector</label><select id="${I('fSector')}"></select></div>
+      <div><label class="f" for="${I('fEst')}">Estación</label><select id="${I('fEst')}"></select></div>
+      <div><label class="f" for="${I('fFen')}">Fenología</label><select id="${I('fFen')}"></select></div>
+      <div><label class="f" for="${I('fTipo')}">Tipo</label><select id="${I('fTipo')}"><option value="">SFR y sondas</option><option value="SFR">Solo SFR</option><option value="SONDA">Solo sondas</option></select></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn-ghost btn-sm" data-acc="limpiar">Restablecer filtros</button>
+      <span class="meta ml-auto data-meta"></span>
+      <button class="btn-sec btn-sm solo-vivo" data-acc="actualizar">Actualizar</button>
+      <button class="btn btn-sm solo-vivo" data-acc="html">⬇ Generar HTML</button>
+      <button class="btn btn-sm" data-acc="excel">⬇ Exportar Excel</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div class="panel-title">${ico('evo')}<h2>Gráficos de ${M.L} por estación</h2></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="panel-sub" id="${I('sGraf')}"></span>
+        <div class="chips val-chips" title="Mostrar los valores sobre los puntos"><button data-v="1">Valores</button><button data-v="0">Sin valores</button></div></div>
+    </div>
+    <div id="${I('graficos')}"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><div class="panel-title">${ico('kpi')}<h2>Indicadores clave · ${M.L}</h2></div><div class="panel-sub" id="${I('kpiSector')}"></div></div>
+    <div class="kpi-grid" id="${I('kpiGrid')}"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><div class="panel-title">${ico('alerta')}<h2>Alertas de ${M.L}</h2></div><div class="panel-sub">SFR vs objetivo (${M.umbral()}) y diferencia 15–40 cm ≥ ${M.gap()}</div></div>
+    <div class="alert-list" id="${I('alertList')}"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div class="panel-title">${ico('rank')}<h2>Ranking de control · ${M.L}</h2></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="panel-sub">Toca un encabezado para ordenar</span>
+        <div class="chips rank-chips"><button data-r="sector" class="act">Por sector</button><button data-r="est">Por estación</button></div></div>
+    </div>
+    <div class="table-scroll" id="${I('rankBox')}"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><div class="panel-title">${ico('tabla')}<h2>Registros de ${M.L} (formato Base de datos)</h2></div><div class="panel-sub" id="${I('sTabla')}"></div></div>
+    <div style="margin-bottom:10px" class="solo-app"><input class="search" id="${I('tBuscar')}" placeholder="Buscar en la tabla…"></div>
+    <div class="table-scroll" id="${I('tablaBox')}"></div>
+    <div class="pager solo-app"><span id="${I('pgInfo')}"></span><button id="${I('pgAnt')}">◀ Anterior</button><button id="${I('pgSig')}">Siguiente ▶</button></div>
+  </section>
+  <div class="foot">HFE Berries · Filial Olmos · Área de Riego · RI-FO-019</div>`;
+}
+const nuevoDash = V => ({ V, FOCO:null, FILTRO_INI:false, FILTRO_AUTO:true, PAG:0, ORDEN:{ k:'dev', asc:false }, RANK:'sector', graf:[] });
+const DASH = { CE: nuevoDash('CE'), PH: nuevoDash('PH') };
+const el = (D, id) => document.getElementById(`${D.V}_${id}`);
+const vista = D => document.getElementById(D.V==='CE' ? 'v-ce' : 'v-ph');
+
+function montarDash(D){
+  vista(D).innerHTML = htmlDash(D.V);
+  ['fCamp','fSem','fDesde','fHasta','fSector','fEst','fFen','fTipo'].forEach(id => el(D,id).addEventListener('change', () => {
+    if(['fCamp','fSem','fDesde','fHasta'].includes(id)) D.FILTRO_AUTO = false;
+    if(id==='fCamp') opciones(el(D,'fSem'), semanasDe(el(D,'fCamp').value), 'Todas');
+    if(id==='fSector'){ D.FOCO = el(D,'fSector').value || D.FOCO; prepararEstaciones(D); }
+    D.PAG = 0; renderDash(D);
+  }));
+  vista(D).querySelectorAll('[data-acc]').forEach(b => b.addEventListener('click', () => {
+    const a = b.dataset.acc;
+    if(a==='limpiar') limpiarFiltros(D); else if(a==='actualizar') cargarDatos(true);
+    else if(a==='html') generarHTML(b); else if(a==='excel') exportarExcel(D, b);
+  }));
+  vista(D).querySelectorAll('.val-chips button').forEach(b => b.addEventListener('click', () => {
+    VER_VALORES = b.dataset.v==='1'; store.set('snd_ver_valores', VER_VALORES); marcarValChips(); renderDash(D);
+  }));
+  vista(D).querySelectorAll('.rank-chips button').forEach(b => b.addEventListener('click', () => {
+    D.RANK = b.dataset.r; vista(D).querySelectorAll('.rank-chips button').forEach(x => x.classList.toggle('act', x===b)); renderDash(D);
+  }));
+  el(D,'tBuscar').addEventListener('input', () => { D.PAG = 0; renderTabla(D, filasBase(D,false)); });
+  el(D,'pgAnt').addEventListener('click', () => { D.PAG = Math.max(0, D.PAG-1); renderTabla(D, filasBase(D,false)); });
+  el(D,'pgSig').addEventListener('click', () => { D.PAG++; renderTabla(D, filasBase(D,false)); });
+}
+function marcarValChips(){ $$('.val-chips button').forEach(x => x.classList.toggle('act', (x.dataset.v==='1')===VER_VALORES)); }
+
+/* ---------- Filtros ---------- */
+const SEM_DEF = 6;
+function lunesISO(iso){ const d = new Date(iso+'T12:00:00Z'), w = d.getUTCDay() || 7; d.setUTCDate(d.getUTCDate() - w + 1); return d.toISOString().slice(0,10); }
+function periodoDefecto(){
+  const ks = [...new Set(DATA.filas.map(f=>f.key))].sort((a,b)=>b-a).slice(0, SEM_DEF);
+  if(!ks.length) return null;
+  const sel = DATA.filas.filter(f => ks.includes(f.key));
+  const desde = lunesISO(sel.filter(f=>f.key===ks[ks.length-1]).map(f=>f.fecha).sort()[0]);
+  const camps = [...new Set(sel.map(f=>f.camp))];
+  return { desde, camp: camps.length===1 ? camps[0] : '', ini: ks[ks.length-1], fin: ks[0] };
+}
+function aplicarPeriodoDefecto(D){
+  const d = periodoDefecto(); if(!d) return false;
+  el(D,'fCamp').value = d.camp; el(D,'fSem').value = ''; el(D,'fDesde').value = d.desde; el(D,'fHasta').value = '';
+  return true;
+}
+function notaPeriodo(D){
+  const d = D.FILTRO_AUTO && periodoDefecto();
+  el(D,'filtroSub').textContent = d ? `Por defecto: últimas ${SEM_DEF} semanas con datos (S${d.ini%100} a S${d.fin%100}, desde ${fmtFecha(d.desde)})`
+                                    : 'Los filtros afectan KPIs, gráficos, ranking y tabla';
+}
+function opciones(sel, items, todas){
+  const prev = sel.value;
+  sel.innerHTML = (todas!=null?`<option value="">${todas}</option>`:'') + items.map(([v,t])=>`<option value="${esc(v)}">${esc(t)}</option>`).join('');
+  if([...sel.options].some(o=>o.value===prev)) sel.value = prev;
+}
+function campanas(){ return [...new Set(DATA.filas.map(f=>f.camp))].sort().reverse().map(c => [c, c || '(sin campaña)']); }
+function semanasDe(camp){
+  const m = new Map(); DATA.filas.filter(f=>!camp || f.camp===camp).forEach(f => m.set(f.key, f.sem));
+  return [...m.entries()].sort((a,b)=>a[0]-b[0]).map(([k,s]) => [String(k), `S${s} · ${String(k).slice(0,4)}`]);
+}
+function sectoresConDatos(){ return [...new Set(DATA.filas.map(f=>f.sector))].sort(ordenSector); }
+function prepararFiltros(D){
+  opciones(el(D,'fCamp'), campanas(), 'Todas');
+  if(!D.FILTRO_INI){ const c = campanas(); el(D,'fCamp').value = c[0] ? c[0][0] : ''; D.FILTRO_INI = true; }
+  if(D.FILTRO_AUTO) D.FILTRO_AUTO = aplicarPeriodoDefecto(D);
+  opciones(el(D,'fSem'), semanasDe(el(D,'fCamp').value), 'Todas');
+  opciones(el(D,'fSector'), sectoresConDatos().map(s=>[s,s]), 'Todos');
+  const fens = [...new Set(DATA.filas.map(f=>f.fen).filter(Boolean))].sort((a,b) => (FENOLOGIAS.indexOf(a)+1||99) - (FENOLOGIAS.indexOf(b)+1||99));
+  opciones(el(D,'fFen'), fens.map(f=>[f,f]), 'Todas');
+  prepararEstaciones(D);
+}
+function prepararEstaciones(D){
+  const s = el(D,'fSector').value, m = new Map();
+  DATA.filas.filter(f=>!s || f.sector===s).forEach(f => m.set(f.ekey, f));
+  opciones(el(D,'fEst'), [...m.values()].sort(ordenEst).map(f => [f.ekey, s ? f.est : `${f.sector} · ${f.est}`]), 'Todas');
+}
+function prepararTodo(){
+  if(!DATA.cargado) return;
+  prepararFiltros(DASH.CE); prepararFiltros(DASH.PH);
+  opciones($('#hCamp'), campanas(), 'Todas');
+  if(!prepararTodo.hIni){ const c = campanas(); $('#hCamp').value = c[0] ? c[0][0] : ''; prepararTodo.hIni = true; }
+  opciones($('#hSem'), semanasDe($('#hCamp').value), 'Todas');
+  opciones($('#hSector'), sectoresConDatos().map(s=>[s,s]), 'Todos');
+}
+function limpiarFiltros(D){
+  D.FILTRO_INI = false; D.FILTRO_AUTO = true; D.FOCO = null;
+  ['fSem','fDesde','fHasta','fSector','fEst','fFen','fTipo'].forEach(id => el(D,id).value = '');
+  prepararFiltros(D); D.PAG = 0; renderDash(D);
+}
+function filasBase(D, ignorarSector){
+  const g = id => el(D,id).value;
+  const c=g('fCamp'), s=g('fSem'), d=g('fDesde'), h=g('fHasta'), sec=g('fSector'), est=g('fEst'), fen=g('fFen');
+  const conCamp = el(D,'fCamp').selectedIndex > 0;   // "(sin campaña)" tiene valor vacío
+  return DATA.filas.filter(f => (!conCamp || f.camp===c) && (!s||String(f.key)===s) && (!d||f.fecha>=d) && (!h||f.fecha<=h)
+                             && (ignorarSector || !sec || f.sector===sec) && (!est || f.ekey===est) && (!fen || f.fen===fen));
+}
+const usarSFR = D => el(D,'fTipo').value !== 'SONDA';
+const usarSonda = D => el(D,'fTipo').value !== 'SFR';
+
+/* Resumen de un grupo de filas (sector o estación) para la variable del dashboard */
+function resumenGrupo(D, fs, extra){
+  const V = D.V, M = VARS[V];
+  const sfr = usarSFR(D) ? prom(fs.map(f=>val(f,P_SFR,V))) : null;
+  const dp = {}; PROFS_SONDA.forEach(p => dp[p] = usarSonda(D) ? prom(fs.map(f=>val(f,p,V))) : null);
+  const son = usarSonda(D) ? prom(fs.flatMap(f=>PROFS_SONDA.map(p=>val(f,p,V)))) : null;
+  const conSfr = fs.filter(f=>val(f,P_SFR,V)!=null);
+  const obj = prom((conSfr.length?conSfr:fs).map(f => objF(f,V)));
+  const dev = M.dev(sfr, obj);
+  const n = fs.reduce((a,f)=>a+(usarSFR(D)&&val(f,P_SFR,V)!=null?1:0)+(usarSonda(D)?PROFS_SONDA.filter(p=>val(f,p,V)!=null).length:0),0);
+  const ult = fs.reduce((u,f) => (f.fen && (!u || f.fecha>u.fecha)) ? f : u, null);
+  return { ...extra, sfr, son, obj, dev, estado: estadoDe(V, dev), dp, n, fen: ult ? ult.fen : '',
+           gap: (dp['15 cm']!=null && dp['40 cm']!=null) ? Math.abs(dp['15 cm']-dp['40 cm']) : null };
+}
+const resumenSector = (D, s, filas) => resumenGrupo(D, filas.filter(f=>f.sector===s), { sector:s, nombre:s });
+function resumenEstaciones(D, filas){
+  const m = new Map(); filas.forEach(f => { if(!m.has(f.ekey)) m.set(f.ekey, []); m.get(f.ekey).push(f); });
+  return [...m.values()].map(fs => resumenGrupo(D, fs, { sector:fs[0].sector, modulo:fs[0].modulo, parcela:fs[0].parcela, nombre:`${fs[0].sector} · ${fs[0].est}` }))
+    .filter(r => r.n).sort(ordenEst);
+}
+function sectorFoco(D, filas){
+  const sec = el(D,'fSector').value; if(sec) return sec;
+  if(D.FOCO && filas.some(f=>f.sector===D.FOCO)) return D.FOCO;
+  return sectoresConDatos().find(s => filas.some(f=>f.sector===s)) || SECTORES[0];
+}
+
+/* ---------- Gráficos por estación (réplica de las hojas CE y PH del RI-FO-019) ----------
+   Un gráfico de líneas por sector-parcela: sondas 15/20/40 cm y SFR, eje X = EJE X (S nn-L / S nn-J)
+   agrupado por fenología, valor = máximo del día de muestreo (como "Máx. de CE / PH" de la tabla dinámica). */
+const MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','set','oct','nov','dic'];
+const fechaCorta = iso => { if(!iso) return '–'; const [y,m,d] = iso.split('-'); return `${+d}-${MESES_C[+m-1]}-${y.slice(2)}`; };
+const GRUPO_VARIETAL = 'JARDÍN VARIETAL';
+const esVarietal = s => !/^O\dE\d$/i.test(s);
+const grupoDe = s => esVarietal(s) ? GRUPO_VARIETAL : s;
+function tituloEst(V, f){
+  const L = VARS[V].L;
+  if(esVarietal(f.sector)) return `${L} (${f.sector})-${String(f.modulo).split(' - ').pop()}`;
+  return `${L} ${f.sector}-P${f.parcela}${/^T\d/i.test(f.modulo) ? ' ' + f.modulo : ''}`;
+}
+const colorSerie = (V, p) => p==='40 cm' ? (V==='PH' ? '#FFC000' : '#ED7D31') : colorProf(p);
+
+/* Plugin: valores sobre los puntos (formato del Excel: sondas 1 decimal, SFR en negrita), sin encimarse */
+const valoresLinea = {
+  id:'valores', afterDatasetsDraw(chart, args, opts){
+    if(!opts || !opts.on) return;
+    const { ctx, chartArea } = chart, ocupados = [];
+    const choca = b => ocupados.some(o => b.x < o.x+o.w && b.x+b.w > o.x && b.y < o.y+o.h && b.y+b.h > o.y);
+    ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+    const orden = chart.data.datasets.map((d,i)=>i).filter(i => !chart.getDatasetMeta(i).hidden)
+      .sort((a,b) => (chart.data.datasets[a].label==='SFR'?0:1) - (chart.data.datasets[b].label==='SFR'?0:1));
+    orden.forEach(i => {
+      const ds = chart.data.datasets[i], meta = chart.getDatasetMeta(i);
+      ctx.font = ds.label==='SFR' ? '700 11px Calibri, Inter, Arial, sans-serif' : '400 10px Calibri, Inter, Arial, sans-serif';
+      const paso = Math.max(1, Math.ceil(meta.data.length / (chartArea.width < 300 ? 8 : 16)));
+      meta.data.forEach((pt, j) => {
+        const v = ds.data[j]; if(v==null || isNaN(v)) return;
+        if(j % paso !== 0 && j !== meta.data.length-1) return;
+        const t = Number(v).toFixed(ds.dec ?? 2), w = ctx.measureText(t).width + 4, h = 11;
+        let caja = null;
+        const cx = Math.min(Math.max(pt.x, chartArea.left + w/2), chartArea.right - w/2);
+        for(const dy of (ds.abajo ? [10, -10, 20, -20] : [-10, 10, -20, 20])){ const b = { x:cx - w/2, y:pt.y + dy - h/2, w, h }; if(b.y > chartArea.top-4 && b.y+h < chartArea.bottom+4 && !choca(b)){ caja = b; break; } }
+        if(!caja) return;
+        ocupados.push(caja);
+        ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 3; ctx.strokeText(t, cx, caja.y + h/2);
+        ctx.fillStyle = ds.borderColor; ctx.fillText(t, cx, caja.y + h/2);
+      });
+    });
+    ctx.restore();
+  }
+};
+/* Plugin: segundo nivel del eje X (fenología), como el eje de varios niveles de la tabla dinámica */
+const gruposFen = {
+  id:'gruposFen', afterDraw(chart, args, opts){
+    const g = opts && opts.grupos; if(!g || !g.length) return;
+    const x = chart.scales.x, ctx = chart.ctx, n = g.length, y = x.bottom + 9;
+    const paso = n > 1 ? x.getPixelForValue(1) - x.getPixelForValue(0) : x.width;
+    ctx.save(); ctx.font = '700 10px Calibri, Inter, Arial, sans-serif'; ctx.fillStyle = '#1b1b1b'; ctx.strokeStyle = '#bfbfbf'; ctx.lineWidth = 1;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    let i = 0;
+    while(i < n){
+      let j = i; while(j+1 < n && g[j+1]===g[i]) j++;
+      const x0 = x.getPixelForValue(i) - paso/2, x1 = x.getPixelForValue(j) + paso/2;
+      if(i > 0){ ctx.beginPath(); ctx.moveTo(x0, x.top); ctx.lineTo(x0, y + 7); ctx.stroke(); }
+      if(g[i]) ctx.fillText(g[i], (x0 + x1)/2, y, Math.max(20, x1 - x0 - 4));
+      i = j + 1;
+    }
+    ctx.restore();
+  }
+};
+function renderGraficos(D, filas){
+  const V = D.V, M = VARS[V], box = el(D,'graficos');
+  (D.graf || []).forEach(c => c.destroy()); D.graf = [];
+  const usa = p => p===P_SFR ? usarSFR(D) : usarSonda(D);
+  const porEst = new Map();
+  filas.forEach(f => { if(Object.keys(f.v).some(p => usa(p) && f.v[p][V]!=null)){ if(!porEst.has(f.ekey)) porEst.set(f.ekey, []); porEst.get(f.ekey).push(f); } });
+  const ests = [...porEst.values()].sort((a,b) => ordenEst(a[0], b[0]));
+  const fechas = [...new Set(filas.map(f=>f.fecha))].sort();
+  el(D,'sGraf').textContent = ests.length ? `${ests.length} estaciones · ${fechas.length ? fmtFecha(fechas[0]) + ' a ' + fmtFecha(fechas[fechas.length-1]) : ''} · máximo por día de muestreo` : '';
+  if(!ests.length){ box.innerHTML = '<div class="alert-empty">Sin datos para los filtros seleccionados.</div>'; return; }
+  const series = fs => {
+    // puntos = EJE X en orden cronológico (máximo si hay más de una lectura en el mismo eje)
+    const pts = new Map();
+    fs.forEach(f => { const k = f.anio*1000 + f.sem*10 + (f.diaM==='L'?0:1); if(!pts.has(k)) pts.set(k, []); pts.get(k).push(f); });
+    const ks = [...pts.keys()].sort((a,b)=>a-b);
+    const profs = [...new Set(fs.flatMap(f => Object.keys(f.v)).filter(p => usa(p)))].sort((a,b) => (a===P_SFR) - (b===P_SFR) || ordenProf(a,b));
+    const max = arr => { const a = arr.filter(v=>v!=null); return a.length ? Math.max(...a) : null; };
+    return {
+      ks, labels: ks.map(k => pts.get(k)[0].ejeX),
+      fen: ks.map(k => { const g = pts.get(k).filter(f=>f.fen).sort((a,b)=>b.fecha.localeCompare(a.fecha)); return g.length ? g[0].fen : ''; }),
+      fechas: ks.map(k => [...new Set(pts.get(k).map(f=>f.fecha))].sort().map(fmtFecha).join(', ')),
+      ult: fs.reduce((m,f) => f.fecha > m ? f.fecha : m, ''),
+      datos: profs.map(p => ({ p, data: ks.map(k => max(pts.get(k).map(f => val(f,p,V)))) })).filter(d => d.data.some(v=>v!=null))
+    };
+  };
+  const info = ests.map(series);
+  const grupos = [...new Set(ests.map(fs => grupoDe(fs[0].sector)))];
+  box.innerHTML = grupos.map(g => `<div class="g-sector"><div class="g-head">${esc(g)}</div><div class="g-grid">${
+    ests.map((fs, i) => grupoDe(fs[0].sector)!==g ? '' : `<div class="g-card">
+      <div class="g-top"><span class="g-sec">SECTOR:</span><span class="g-tit">${esc(tituloEst(V, fs[0]))}</span>
+        <span class="g-leg">${info[i].datos.map(d => `<b><i style="background:${colorSerie(V,d.p)}"></i>${esc(d.p)}</b>`).join('')}</span>
+        <span class="g-fecha">${fechaCorta(info[i].ult)}</span></div>
+      <div class="g-box"><canvas id="${V}_g_${i}"></canvas></div></div>`).join('')}</div></div>`).join('');
+  if(!window.Chart){
+    box.querySelectorAll('.g-box').forEach(b => b.insertAdjacentHTML('beforeend', `<div class="chart-msg">${CHART_CARGA ? 'Cargando gráficos…' : 'No se pudieron cargar los gráficos (revisa la conexión a internet).'}</div>`));
+    return;
+  }
+  info.forEach((s, i) => {
+    const todos = s.datos.flatMap(d => d.data).filter(v => v!=null);
+    const lo0 = Math.min(...todos), hi0 = Math.max(...todos), pad = Math.max((hi0 - lo0) * 0.12, V==='CE' ? 0.05 : 0.2);
+    const st = V==='CE' ? 0.1 : 0.2, lo = Math.max(0, Math.floor((lo0 - pad)/st)*st), hi = Math.ceil((hi0 + pad)/st)*st;
+    const ds = s.datos.map(d => ({ label:d.p, data:d.data, borderColor:colorSerie(V,d.p), backgroundColor:colorSerie(V,d.p),
+      borderWidth: d.p===P_SFR ? 3 : 2, pointRadius:3.5, pointHoverRadius:5, pointStyle:'circle', tension:.4, spanGaps:true,
+      dec: d.p===P_SFR && V==='CE' ? 2 : 1, abajo: V==='CE' ? d.p==='20 cm' : d.p==='15 cm' }));
+    const c = new Chart(document.getElementById(`${V}_g_${i}`), { type:'line', data:{ labels:s.labels, datasets:ds }, plugins:[valoresLinea, gruposFen],
+      options:{ responsive:true, maintainAspectRatio:false, animation:{ duration:150 }, interaction:{ mode:'index', intersect:false },
+        layout:{ padding:{ top:6, right:8, bottom:16 } },
+        plugins:{ legend:{ display:false }, valores:{ on:VER_VALORES }, gruposFen:{ grupos:s.fen },
+          tooltip:{ callbacks:{ title: it => it.length ? `${s.labels[it[0].dataIndex]} · ${s.fechas[it[0].dataIndex]}${s.fen[it[0].dataIndex] ? ' · ' + s.fen[it[0].dataIndex] : ''}` : '',
+                                label: it => `${it.dataset.label}: ${Number(it.raw).toFixed(2)}` } } },
+        scales:{ x:{ grid:{ color:'#d9d9d9' }, border:{ color:'#7f7f7f' }, ticks:{ color:'#1b1b1b', font:{ size:10, weight:'700' }, autoSkip: s.labels.length > 24, maxRotation:90 } },
+                 y:{ min:+lo.toFixed(2), max:+hi.toFixed(2), grid:{ color:'#d9d9d9' }, border:{ display:false }, ticks:{ color:'#595959', font:{ size:10 }, stepSize: st, callback: v => +Number(v).toFixed(2) } } } } });
+    D.graf.push(c);
+  });
+}
+
+function renderDash(D){
+  if(!DATA.cargado || !el(D,'strip')) return;
+  if(!window.Chart) cargarChart().then(() => { if(vista(D).classList.contains('act')) renderDash(D); }).catch(()=>{});
+  actualizarMeta(); notaPeriodo(D); marcarValChips();
+  const V = D.V, M = VARS[V], VL = M.L;
+  const base = filasBase(D, true), filas = filasBase(D, false);
+  const foco = sectorFoco(D, filas.length ? filas : base);
+  const resumenes = sectoresConDatos().map(s => resumenSector(D, s, base)).filter(r => base.some(f=>f.sector===r.sector));
+
+  /* Tira de sectores */
+  el(D,'strip').innerHTML = resumenes.map(r => {
+    const color = colorEstado(r.estado);
+    return `<div class="valve-chip${r.sector===foco?' active':''}" data-s="${esc(r.sector)}">
+      <div class="vc-top"><span class="vc-name">${esc(r.sector)}</span><span class="vc-ring" style="background:${color}"></span></div>
+      <div class="vc-dev" style="color:${color}">${M.fdev(r.dev)}</div>
+      <div class="vc-lbl">${VL} SFR ${f2(r.sfr)} · obj ${f2(r.obj)}</div></div>`;
+  }).join('') || '<div class="alert-empty">Sin datos para los filtros.</div>';
+  el(D,'strip').querySelectorAll('.valve-chip').forEach(ch => ch.addEventListener('click', () => {
+    D.FOCO = ch.dataset.s; if(el(D,'fSector').value){ el(D,'fSector').value = D.FOCO; prepararEstaciones(D); } renderDash(D);
+  }));
+
+  /* KPIs del sector de detalle */
+  const estSel = el(D,'fEst').value;
+  const rs = resumenSector(D, foco, base.filter(f => !estSel || f.ekey===estSel));
+  el(D,'kpiSector').textContent = `Sector de detalle: ${foco}${estSel ? ' · ' + (DATA.filas.find(f=>f.ekey===estSel)||{}).est : ''}${rs.fen ? ' · Fenología: ' + rs.fen : ''}`;
+  const cls = rs.estado ? 'state-'+rs.estado : '';
+  const card = (l,v,ft,c='',k=cls) => `<div class="kpi-card ${k}"><div class="k-label">${l}</div><div class="k-value ${c}">${v}</div><div class="k-foot">${ft}</div></div>`;
+  el(D,'kpiGrid').innerHTML =
+    card(`${VL} objetivo`, f2(rs.obj), 'Promedio de los objetivos registrados (fila OBJ.)') +
+    card(`${VL} SFR`, f2(rs.sfr), 'Promedio solución de fertirriego') +
+    card(`${VL} promedio sondas`, f2(rs.son), 'Promedio de todas las profundidades') +
+    card(M.devLbl + ' vs. objetivo', M.fdev(rs.dev), M.devTxt, rs.dev>0?'dev-up':'dev-down') +
+    `<div class="kpi-card ${cls}"><div class="k-label">Estado</div><div class="k-value">${rs.estado?`<span class="pill ${rs.estado}"><span class="dot"></span>${rs.estado}</span>`:'N/D'}</div><div class="k-foot">${M.umbral()}</div></div>` +
+    PROFS_SONDA.filter(p => rs.dp[p]!=null).map(p => card(`${VL} ${p}`, f2(rs.dp[p]), 'Promedio del periodo', '', '')).join('') +
+    (rs.gap!=null ? card('Δ 15–40 cm', f2(rs.gap), `Alerta desde ${M.gap()}`, '', rs.gap>=M.gap()?'state-ALERTA':'') : '');
+
+  /* Alertas */
+  const al = ordenAlertas(alertasVar(V, resumenes));
+  el(D,'alertList').innerHTML = al.length ? al.map(a => `<div class="alert-item ${a.nivel}"><span>${a.nivel==='CRITICO'?'⛔':'⚠'}</span><span>${esc(a.t)}</span></div>`).join('')
+    : '<div class="alert-empty">Sin alertas activas para los filtros y datos disponibles.</div>';
+
+  /* Gráficos por estación (formato RI-FO-019) */
+  renderGraficos(D, filas);
+
+  renderRanking(D, D.RANK==='est' ? resumenEstaciones(D, filas) : resumenes);
+  renderTabla(D, filas);
+}
+
+/* Ranking (por sector o por estación) */
+function renderRanking(D, res){
+  const V = D.V, M = VARS[V], VL = M.L, k = D.ORDEN.k;
+  const valor = r => k==='dev' ? (r.dev==null?-1:Math.abs(r.dev)) : k==='nombre' ? r.nombre : k.startsWith('dp:') ? (r.dp[k.slice(3)] ?? -1) : (r[k] ?? -1);
+  const filas = [...res].sort((a,b) => { const x=valor(a), y=valor(b); const c = typeof x==='string' ? x.localeCompare(y,'es',{numeric:true}) : x-y; return D.ORDEN.asc ? c : -c; });
+  const th = (key, t) => `<th data-k="${esc(key)}" class="${key==='nombre'||key==='fen'?'':'n'}">${t}${D.ORDEN.k===key?(D.ORDEN.asc?' ▲':' ▼'):''}</th>`;
+  const profs = PROFS_SONDA.filter(p => usarSonda(D) && res.some(r => r.dp[p]!=null));
+  const maxDev = Math.max(M.aMax()*1.5, ...filas.map(r=>Math.abs(r.dev||0)));
+  el(D,'rankBox').innerHTML = `<table class="dt"><thead><tr>${th('nombre', D.RANK==='est'?'Estación':'Sector')}${th('fen','Fenología')}${th('obj',VL+' objetivo')}${th('sfr',VL+' SFR')}${th('dev',M.devLbl)}<th>Estado</th>${th('son','Prom. sondas')}${profs.map(p=>th('dp:'+p, p)).join('')}${th('gap','Δ 15–40')}${th('n','N.º')}</tr></thead><tbody>
+    ${filas.map(r => `<tr><td><b>${esc(r.nombre)}</b></td><td>${esc(r.fen||'–')}</td><td class="n">${f2(r.obj)}</td><td class="n">${f2(r.sfr)}</td>
+      <td><span class="${r.dev>0?'dev-up':'dev-down'}">${M.fdev(r.dev)}</span><div class="rank-bar"><i style="width:${r.dev==null?0:Math.min(100,Math.abs(r.dev)/maxDev*100)}%;background:${colorEstado(r.estado)}"></i></div></td>
+      <td>${r.estado?`<span class="pill ${r.estado}"><span class="dot"></span>${r.estado}</span>`:'<span class="pill ND">N/D</span>'}</td>
+      <td class="n">${f2(r.son)}</td>${profs.map(p=>`<td class="n">${f2(r.dp[p])}</td>`).join('')}
+      <td class="n ${r.gap!=null && r.gap>=M.gap()?'c-warn':''}">${f2(r.gap)}</td><td class="n">${r.n}</td></tr>`).join('') || '<tr><td colspan="12" style="text-align:center;color:var(--ink-faint);padding:20px">Sin datos</td></tr>'}</tbody></table>`;
+  el(D,'rankBox').querySelectorAll('th[data-k]').forEach(t => t.addEventListener('click', () => {
+    const kk = t.dataset.k; D.ORDEN = { k:kk, asc: D.ORDEN.k===kk ? !D.ORDEN.asc : (kk==='nombre'||kk==='fen') }; renderRanking(D, res);
+  }));
+}
+
+/* Registros en formato largo (como la hoja Base de datos) */
+function largo(D, filas){
+  const V = D.V, out = [];
+  filas.forEach(f => {
+    Object.keys(f.v).sort(ordenProf).forEach(p => {
+      if(p===P_SFR ? !usarSFR(D) : !usarSonda(D)) return;
+      const v = f.v[p][V]; if(v==null) return;
+      out.push({ fecha:f.fecha, ejeX:f.ejeX, sector:f.sector, modulo:f.modulo, parcela:f.parcela, fen:f.fen, prof:p, v, obj:objF(f,V), camp:f.camp, sem:f.sem });
+    });
+  });
+  return out.sort((a,b) => b.fecha.localeCompare(a.fecha) || ordenEst(a,b) || ordenProf(a.prof,b.prof));
+}
+const POR_PAG = 15;
+function renderTabla(D, filas){
+  const q = el(D,'tBuscar').value.trim().toLowerCase(), VL = VARS[D.V].L;
+  let L = largo(D, filas);
+  if(q) L = L.filter(r => [fmtFecha(r.fecha), r.ejeX, r.sector, r.modulo, r.parcela, r.fen, r.prof, f2(r.v), r.camp].join(' ').toLowerCase().includes(q));
+  const paginas = Math.max(1, Math.ceil(L.length/POR_PAG)); D.PAG = Math.min(D.PAG, paginas-1);
+  const vis = L.slice(D.PAG*POR_PAG, D.PAG*POR_PAG+POR_PAG);
+  el(D,'sTabla').textContent = `${L.length.toLocaleString('es-PE')} lecturas`;
+  el(D,'tablaBox').innerHTML = `<table class="dt"><thead><tr><th>Fecha</th><th>Eje X</th><th>Sector</th><th>Módulo</th><th>Parcela</th><th>Fenología</th><th>Profundidad</th><th class="n">${VL}</th><th class="n">Objetivo</th><th class="n">Campaña</th></tr></thead><tbody>
+    ${vis.map(r => { const e = r.prof===P_SFR ? estadoDe(D.V, VARS[D.V].dev(r.v, r.obj)) : null;
+      return `<tr><td>${fmtFecha(r.fecha)}</td><td>${esc(r.ejeX)}</td><td>${esc(r.sector)}</td><td>${esc(r.modulo)}</td><td>${esc(r.parcela)}</td><td>${esc(r.fen||'–')}</td><td>${esc(r.prof)}</td>
+        <td class="n ${e==='CRITICO'?'c-bad':e==='ALERTA'?'c-warn':''}">${f2(r.v)}</td><td class="n">${f2(r.obj)}</td><td class="n">${esc(r.camp||'–')}</td></tr>`; }).join('')
+      || '<tr><td colspan="10" style="text-align:center;color:var(--ink-faint);padding:20px">Sin registros para los filtros</td></tr>'}</tbody></table>`;
+  el(D,'pgInfo').textContent = `Página ${D.PAG+1} de ${paginas}`;
+  el(D,'pgAnt').disabled = D.PAG===0; el(D,'pgSig').disabled = D.PAG>=paginas-1;
+}
+
+/* =====================================================================
+   EXPORTAR EXCEL — datos del dashboard (CE o pH) con sus filtros actuales
+   ===================================================================== */
+let XLSX_CARGA = null;
+function cargarXlsx(){
+  if(window.XLSX) return Promise.resolve();
+  if(!XLSX_CARGA) XLSX_CARGA = cargarLibs([['https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js',
+                                            'https://unpkg.com/xlsx-js-style@1.2.0/dist/xlsx.bundle.js',
+                                            'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js']])
+    .catch(e => { XLSX_CARGA = null; throw e; });
+  return XLSX_CARGA;
+}
+function descripcionFiltros(D){
+  const t = id => { const x = el(D,id); return x.tagName==='SELECT' ? (x.selectedOptions[0] ? x.selectedOptions[0].text : '') : (x.value ? fmtFecha(x.value) : ''); };
+  return [
+    ['Variable', VARS[D.V].titulo], ['Campaña', t('fCamp') || 'Todas'], ['Semana', t('fSem') || 'Todas'],
+    ['Fecha desde', t('fDesde') || '—'], ['Fecha hasta', t('fHasta') || '—'],
+    ['Sector', t('fSector') || 'Todos'], ['Estación', t('fEst') || 'Todas'], ['Fenología', t('fFen') || 'Todas'], ['Tipo', t('fTipo') || 'SFR y sondas'],
+  ].concat(D.FILTRO_AUTO ? [['Periodo', `Últimas ${SEM_DEF} semanas con datos (por defecto)`]] : []);
+}
+async function exportarExcel(D, btn){
+  if(!DATA.cargado){ alert('Aún no hay datos cargados.'); return; }
+  const txt = btn.textContent; btn.disabled = true; btn.textContent = 'Generando…';
+  try{
+    await cargarXlsx();
+    const X = window.XLSX, V = D.V, M = VARS[V], VL = M.L;
+    const fx = iso => { const [y,m,d] = iso.split('-').map(Number); return (Date.UTC(y, m-1, d) - Date.UTC(1899, 11, 30)) / 864e5; }, rr = v => v==null || isNaN(v) ? null : Math.round(v*100)/100;
+    const base = filasBase(D, true), filas = filasBase(D, false);
+    if(!filas.length){ alert('No hay registros para los filtros seleccionados.'); return; }
+    const codigo = new Map(DATA.envios.map(e => [e.id, e.codigo || ''])), resp = new Map(DATA.envios.map(e => [e.id, e.responsable || '']));
+    const res = sectoresConDatos().map(s => resumenSector(D, s, base)).filter(r => base.some(f=>f.sector===r.sector));
+    const filtrados = el(D,'fSector').value ? res.filter(r => r.sector===el(D,'fSector').value) : res;
+    const devFmt = V==='CE' ? '+0.0%;-0.0%;0.0%' : '+0.00;-0.00;0.00', devVal = d => d==null ? null : (V==='CE' ? d/100 : rr(d));
+
+    const VERDE = '0F6B4C', borde = { style:'thin', color:{ rgb:'D5DED8' } };
+    const sTit = { font:{ bold:true, sz:14, color:{ rgb:VERDE } } }, sSub = { font:{ italic:true, color:{ rgb:'5B6B60' } } };
+    const sHead = { font:{ bold:true, color:{ rgb:'FFFFFF' } }, fill:{ fgColor:{ rgb:VERDE } }, alignment:{ horizontal:'center', vertical:'center', wrapText:true }, border:{ top:borde, bottom:borde, left:borde, right:borde } };
+    const sCel = { border:{ top:borde, bottom:borde, left:borde, right:borde } };
+    const sEst = { NORMAL:{ fill:{ fgColor:{ rgb:'DFF3E7' } }, font:{ bold:true, color:{ rgb:'1E8E5A' } } },
+                   ALERTA:{ fill:{ fgColor:{ rgb:'FBEFD9' } }, font:{ bold:true, color:{ rgb:'B9741A' } } },
+                   CRITICO:{ fill:{ fgColor:{ rgb:'F8DEDA' } }, font:{ bold:true, color:{ rgb:'C0392B' } } } };
+    function hoja(titulo, sub, head, rows, opt = {}){
+      const pre = [[titulo], [sub], []].concat(opt.antes || []), r0 = pre.length;
+      const ws = X.utils.aoa_to_sheet(pre.concat([head], rows));
+      const fmt = opt.fmt || {}, celda = (r,c) => ws[X.utils.encode_cell({ r, c })];
+      if(celda(0,0)) celda(0,0).s = sTit;
+      if(celda(1,0)) celda(1,0).s = sSub;
+      (opt.antes || []).forEach((_, i) => { const c = celda(3+i, 0); if(c) c.s = { font:{ bold:true } }; });
+      head.forEach((_, c) => { const x = celda(r0, c); if(x) x.s = sHead; });
+      rows.forEach((row, i) => row.forEach((v, c) => {
+        const x = celda(r0+1+i, c); if(!x) return;
+        x.s = Object.assign({}, sCel, (opt.estadoCol===c && sEst[v]) || {});
+        if(fmt[c] && typeof v === 'number') x.z = fmt[c];
+      }));
+      ws['!cols'] = head.map((h, c) => ({ wch: opt.anchos && opt.anchos[c] || Math.max(10, String(h).length + 2) }));
+      ws['!rows'] = []; ws['!rows'][r0] = { hpt: 30 };
+      ws['!autofilter'] = { ref: X.utils.encode_range({ s:{ r:r0, c:0 }, e:{ r:r0 + rows.length, c:head.length-1 } }) };
+      return ws;
+    }
+    const sub = `Generado ${ahoraLimaTxt()} · datos actualizados ${DATA.actualizado ? DATA.actualizado.toLocaleString('es-PE',{timeZone:ZONA,dateStyle:'short',timeStyle:'short'}) : '—'}`;
+    const wb = X.utils.book_new();
+    const profs = PROFS_SONDA.filter(p => usarSonda(D));
+    const cabRes = primera => [primera, 'Fenología', `${VL} objetivo`, `${VL} SFR`, M.devLbl, 'Estado', `${VL} prom. sondas`, ...profs.map(p=>`${VL} ${p}`), 'Δ 15–40 cm', 'N.º valores'];
+    const filaRes = r => [r.nombre, r.fen || '', rr(r.obj), rr(r.sfr), devVal(r.dev), r.estado || 'N/D', rr(r.son), ...profs.map(p => rr(r.dp[p])), rr(r.gap), r.n];
+    const fmtRes = h => { const o = {}; h.forEach((x, c) => { if(c>1 && c!==5) o[c] = x===M.devLbl ? devFmt : x==='N.º valores' ? '#,##0' : '0.00'; }); return o; };
+
+    const hR = cabRes('Sector');
+    X.utils.book_append_sheet(wb, hoja(`Sondas & SFR · Resumen de ${VL} por sector`, sub, hR, filtrados.map(filaRes),
+      { fmt: fmtRes(hR), estadoCol: 5, antes: descripcionFiltros(D).concat([[]]), anchos: { 0: 18, 1: 18 } }), 'Resumen');
+    const hS = cabRes('Estación');
+    X.utils.book_append_sheet(wb, hoja(`Resumen de ${VL} por estación`, 'Promedio del periodo filtrado', hS, resumenEstaciones(D, filas).map(filaRes),
+      { fmt: fmtRes(hS), estadoCol: 5, anchos: { 0: 34, 1: 18 } }), 'Estaciones');
+    const al = ordenAlertas(alertasVar(V, filtrados));
+    X.utils.book_append_sheet(wb, hoja(`Alertas (${VL})`, `${M.umbral()} · Δ 15–40 cm ≥ ${M.gap()}`,
+      ['Nivel', 'Detalle'], al.length ? al.map(a => [a.nivel, a.t]) : [['—', 'Sin alertas activas para los filtros seleccionados']],
+      { estadoCol: 0, anchos: { 0: 12, 1: 95 } }), 'Alertas');
+
+    /* Evolución: promedio por fecha y sector */
+    const grupos = new Map();
+    filas.forEach(f => { const k = f.fecha + '|' + f.sector; if(!grupos.has(k)) grupos.set(k, []); grupos.get(k).push(f); });
+    const hE = ['Fecha', 'Eje X', 'Campaña', 'Sector', 'Fenología', `${VL} objetivo`, `${VL} SFR`, M.devLbl, 'Estado', ...profs.map(p=>`${VL} ${p}`)];
+    const rowsE = [...grupos.values()].sort((a, b) => b[0].fecha.localeCompare(a[0].fecha) || ordenSector(a[0].sector, b[0].sector)).map(g => {
+      const r = resumenGrupo(D, g, {}), f0 = g[0];
+      return [fx(f0.fecha), f0.ejeX, f0.camp, f0.sector, r.fen || '', rr(r.obj), rr(r.sfr), devVal(r.dev), r.estado || 'N/D', ...profs.map(p => rr(r.dp[p]))];
+    });
+    const fmtE = { 0:'dd/mm/yyyy' }; hE.forEach((h, c) => { if(c>=5 && c!==8) fmtE[c] = h===M.devLbl ? devFmt : '0.00'; });
+    X.utils.book_append_sheet(wb, hoja(`Evolución de ${VL} por fecha y sector`, 'Promedio de las estaciones del sector en cada fecha', hE, rowsE,
+      { fmt: fmtE, estadoCol: 8, anchos: { 0: 12, 3: 17, 4: 18 } }), 'Evolución');
+
+    /* Base de datos (formato RI-FO-019, pH y CE) de las filas filtradas */
+    const hB = ['FECHA','CAMPAÑA','DÍA-M','EJE X','SEMANA','FENOLOGIA','SECTOR','MODULO','PARCELA','PROFUNIDAD','PH','CE','CÓDIGO','RESPONSABLE'];
+    const rowsB = [];
+    [...filas].sort((a,b) => b.fecha.localeCompare(a.fecha) || ordenEst(a,b)).forEach(f => {
+      const add = (p, ph, ce) => rowsB.push([fx(f.fecha), f.camp, f.diaM, f.ejeX, `S ${f.sem}`, f.fen, f.sector, f.modulo, f.parcela, p, rr(ph), rr(ce), codigo.get(f.id)||'', resp.get(f.id)||'']);
+      Object.keys(f.v).sort(ordenProf).forEach(p => { if(p===P_SFR ? usarSFR(D) : usarSonda(D)) add(p, f.v[p].PH, f.v[p].CE); });
+      if(f.obj.CE!=null || f.obj.PH!=null) add(P_OBJ, f.obj.PH, f.obj.CE);
+    });
+    X.utils.book_append_sheet(wb, hoja('Base de datos (formato RI-FO-019)', `${rowsB.length.toLocaleString('es-PE')} filas · incluye la fila OBJ. con el pH y CE objetivo`, hB, rowsB,
+      { fmt: { 0:'dd/mm/yyyy', 10:'0.00', 11:'0.00' }, anchos: { 0: 12, 5: 18, 6: 17, 7: 15, 9: 13, 12: 17, 13: 18 } }), 'Base de datos');
+
+    const p = partesLima(), camp = el(D,'fCamp').value || 'Todas', sec = el(D,'fSector').value;
+    X.writeFile(wb, `Dashboard_${VL}_Sondas_${camp}${sec ? '_' + sec : ''}_${p.year}${p.month}${p.day}_${p.hour}${p.minute}.xlsx`, { compression: true });
+  }catch(err){ alert(err.message || 'No se pudo generar el Excel.'); }
+  finally{ btn.disabled = false; btn.textContent = txt; }
+}
+
+/* =====================================================================
+   GENERAR HTML — Dashboards CE y pH interactivos descargables
+   ===================================================================== */
+const leerFiltros = D => ({ fCamp:el(D,'fCamp').value, fCampIdx:el(D,'fCamp').selectedIndex, fSem:el(D,'fSem').value, fDesde:el(D,'fDesde').value, fHasta:el(D,'fHasta').value,
+                           fSector:el(D,'fSector').value, fEst:el(D,'fEst').value, fFen:el(D,'fFen').value, fTipo:el(D,'fTipo').value,
+                           FOCO:D.FOCO, FILTRO_AUTO:D.FILTRO_AUTO, RANK:D.RANK });
+async function generarHTML(btn){
+  if(!DATA.cargado){ alert('Espera a que carguen los datos.'); return; }
+  const txt = btn.textContent; btn.disabled = true; btn.textContent = 'Generando…';
+  try{
+    let fuente = '';
+    try{ const r = await fetch(location.href.split('#')[0], { cache:'no-store' }); if(r.ok) fuente = await r.text(); }catch(e){}
+    if(!fuente || fuente.indexOf('generarHTML') < 0) fuente = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    const TAG = '<scr' + 'ipt id="reporte-';
+    fuente = fuente.replace(new RegExp(TAG + '(data|chart)">[\\s\\S]*?<\\/scr' + 'ipt>\\n?', 'g'), '');
+    let chartJs = '';
+    for(const u of ['https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js','https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js']){
+      try{ const r = await fetch(u); if(r.ok){ chartJs = await r.text(); break; } }catch(e){}
+    }
+    const raw = clonarRaw(DATA.raw || {envios:[],est:[],prof:[],fen:[],registros:[]});
+    store.get(LS_PEND, []).forEach(op => aplicarOpRaw(raw, { accion:'guardar', ...op }));
+    const rep = { raw, param: PARAM, generado: ahoraLimaTxt(), actualizado: (DATA.actualizado || new Date()).toISOString(),
+                  tab: tabActual()==='ph' ? 'ph' : 'ce', VER_VALORES, filtros: { CE: leerFiltros(DASH.CE), PH: leerFiltros(DASH.PH) } };
+    const seguro = t => t.replace(/<\/(script)/gi, '<\\/$1');
+    const inyectar = TAG + 'data">window.__REPORTE__ = ' + seguro(JSON.stringify(rep)) + ';<\/script>\n' +
+                     (chartJs ? TAG + 'chart">' + seguro(chartJs) + '<\/script>\n' : '');
+    const i = fuente.search(/<\/head>/i);
+    const html = i >= 0 ? fuente.slice(0, i) + inyectar + fuente.slice(i) : inyectar + fuente;
+    const p = partesLima();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([html], { type:'text/html;charset=utf-8' }));
+    a.download = `Dashboard_Sondas_SFR_pH-CE_${p.year}${p.month}${p.day}_${p.hour}${p.minute}.html`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  }catch(err){ alert('No se pudo generar el HTML: ' + err.message); }
+  finally{ btn.disabled = false; btn.textContent = txt; }
+}
+function iniciarReporte(){
+  const R = REPORTE;
+  document.body.classList.add('reporte');
+  PARAM = R.param || PARAM;
+  DATA.raw = R.raw; DATA.fuente = 'reporte'; DATA.actualizado = new Date(R.actualizado);
+  procesarDatos(R.raw); DATA.cargado = true;
+  VER_VALORES = R.VER_VALORES !== false;
+  ['CE','PH'].forEach(V => {
+    const D = DASH[V], F = (R.filtros || {})[V] || {};
+    D.FILTRO_INI = true; D.FILTRO_AUTO = !!F.FILTRO_AUTO; D.FOCO = F.FOCO || null; D.RANK = F.RANK || 'sector';
+    prepararFiltros(D);
+    const poner = (id, v) => { const x = el(D,id); if(x && v!=null && (x.tagName!=='SELECT' || [...x.options].some(o=>o.value===v))) x.value = v; };
+    if(F.fCampIdx===0) el(D,'fCamp').selectedIndex = 0; else poner('fCamp', F.fCamp);
+    opciones(el(D,'fSem'), semanasDe(el(D,'fCamp').value), 'Todas');
+    ['fSem','fDesde','fHasta','fSector','fFen','fTipo'].forEach(id => poner(id, F[id]));
+    prepararEstaciones(D); poner('fEst', F.fEst);
+    vista(D).querySelectorAll('.rank-chips button').forEach(x => x.classList.toggle('act', x.dataset.r===D.RANK));
+    vista(D).insertAdjacentHTML('afterbegin', `<div class="alert info" style="margin-top:14px">📄 Reporte descargado con datos hasta la última actualización (${esc(DATA.actualizado.toLocaleString('es-PE',{timeZone:ZONA,dateStyle:'short',timeStyle:'short'}))}). Los filtros funcionan; para ver registros nuevos, genera otro HTML desde la app.</div>`);
+  });
+  $('#mAct').closest('.hdr-meta').insertAdjacentHTML('beforeend', `<div><span>Reporte generado</span><b>${esc(R.generado||'')}</b></div>`);
+  document.title = 'Dashboard Sondas & SFR · ' + (R.generado || '');
+  irA(R.tab || 'ce');
+}
+
+/* =====================================================================
+   HISTORIAL
+   ===================================================================== */
+let HPAG = 0; const H_POR_PAG = 20;
+['hCamp','hSem','hDesde','hHasta','hSector'].forEach(id => $('#'+id).addEventListener('change', () => {
+  if(id==='hCamp') opciones($('#hSem'), semanasDe($('#hCamp').value), 'Todas');
+  HPAG = 0; renderHistorial();
+}));
+function enviosFiltrados(){
+  const c=$('#hCamp').value, s=$('#hSem').value, d=$('#hDesde').value, h=$('#hHasta').value, conCamp = $('#hCamp').selectedIndex > 0;
+  return DATA.envios.filter(e => (!conCamp || e.camp===c) && (!s||String(e.key)===s) && (!d||e.fecha>=d) && (!h||e.fecha<=h));
+}
+/* Convierte un envío procesado al formato del formulario / Sheets */
+function regDesdeEnvio(e){
+  const sectores = {};
+  sectoresDe(e.filas).forEach(s => { const fs = e.filas.filter(f=>f.sector===s);
+    sectores[s] = { fen:(fs.find(f=>f.fen)||{}).fen || '', objCE:(fs.find(f=>f.obj.CE!=null)||{obj:{}}).obj.CE ?? objPar(s,'CE'), objPH:(fs.find(f=>f.obj.PH!=null)||{obj:{}}).obj.PH ?? objPar(s,'PH') }; });
+  return { id:e.id, codigo:e.codigo, fecha:e.fecha, responsable:e.responsable, campana:e.camp, observaciones:e.observaciones, sectores,
+           estaciones: e.filas.map(f => ({ sector:f.sector, modulo:f.modulo, parcela:f.parcela,
+             lect: Object.fromEntries(Object.keys(f.v).map(p => [p, { ce:f.v[p].CE, ph:f.v[p].PH }])) })) };
+}
+function renderHistorial(){
+  if(!DATA.cargado) return;
+  const lista = enviosFiltrados();
+  $('#hMeta').textContent = `${lista.length} registro(s)` + (DATA.fuente==='demo' ? ' · datos de demostración' : DATA.fuente==='cache' ? ' · sin conexión (datos guardados)' : '');
+  if(!lista.length){ $('#hLista').innerHTML = '<div class="panel" style="text-align:center;color:var(--ink-faint)">No hay registros para los filtros seleccionados.</div>'; $('#hPager').innerHTML=''; return; }
+  const paginas = Math.ceil(lista.length/H_POR_PAG); HPAG = Math.min(HPAG, paginas-1);
+  const vis = lista.slice(HPAG*H_POR_PAG, HPAG*H_POR_PAG+H_POR_PAG);
+  $('#hLista').innerHTML = vis.map(e => {
+    const rd = regDesdeEnvio(e), res = resumenSectores(rd.estaciones, rd.sectores), al = alertasDeResumen(res);
+    const ceS = prom(e.filas.map(f=>val(f,P_SFR,'CE'))), phS = prom(e.filas.map(f=>val(f,P_SFR,'PH')));
+    return `<details class="hitem" data-id="${esc(e.id)}">
+      <summary><span class="fch">${fmtFecha(e.fecha)}</span>
+        <span class="who"><b>${esc(e.codigo||'Sin código')}</b> · ${esc(e.ejeX)}${e.camp?' · Camp. '+esc(e.camp):''} · ${esc(e.responsable)} ${e.pend?'<span class="tag pend">Pendiente de subir</span>':''}</span>
+        <span class="pill ${al.some(a=>a.nivel==='CRITICO')?'CRITICO':al.length?'ALERTA':'NORMAL'}">${al.length?`${al.length} alerta(s)`:'✓ OK'}</span>
+        <span class="vals">${e.filas.length} estaciones · ${sectoresDe(e.filas).length} sectores · CE SFR ${f2(ceS)} · pH SFR ${f2(phS)}</span></summary>
+      <div class="hbody"></div></details>`;
+  }).join('');
+  $('#hPager').innerHTML = paginas>1 ? `<span>Página ${HPAG+1} de ${paginas}</span><button ${HPAG===0?'disabled':''} onclick="HPAG--;renderHistorial();window.scrollTo({top:0})">◀ Anterior</button><button ${HPAG>=paginas-1?'disabled':''} onclick="HPAG++;renderHistorial();window.scrollTo({top:0})">Siguiente ▶</button>` : '';
+  $$('#hLista .hitem').forEach(d => d.addEventListener('toggle', () => { if(d.open && !d.dataset.ok){ d.querySelector('.hbody').innerHTML = detalleHist(DATA.envios.find(x=>x.id===d.dataset.id)); d.dataset.ok='1'; } }));
+}
+function detalleHist(e){
+  if(!e) return '';
+  const sec = $('#hSector').value, fil = e.filas.filter(f=>!sec || f.sector===sec);
+  const profs = [...new Set(fil.flatMap(f=>Object.keys(f.v)))].sort(ordenProf);
+  const rd = regDesdeEnvio(e), res = resumenSectores(rd.estaciones, rd.sectores).filter(r => !sec || r.sector===sec);
+  const c = (f, p, V) => { const v = val(f,p,V); if(v==null) return '<td class="n" style="color:#b0b7c3">–</td>';
+    if(p===P_SFR){ const est = estadoDe(V, VARS[V].dev(v, objF(f,V))); return `<td class="n ${est==='CRITICO'?'c-bad':est==='ALERTA'?'c-warn':''}">${f2(v)}</td>`; }
+    return `<td class="n">${f2(v)}</td>`; };
+  const pill = e => e ? `<span class="pill ${e}"><span class="dot"></span>${e}</span>` : '<span class="pill ND">N/D</span>';
+  return `<div class="hacc">
+      <button class="btn btn-sm" onclick="accionHist('${esc(e.id)}','editar')">✏️ Editar</button>
+      <button class="btn-del btn-sm" onclick="accionHist('${esc(e.id)}','eliminar')">🗑 Eliminar</button>
+      <button class="btn-pdf btn-sm" onclick="accionHist('${esc(e.id)}','pdf',this)">📄 PDF</button>
+      <button class="btn-wa btn-sm" onclick="accionHist('${esc(e.id)}','wa')">Reenviar WhatsApp</button></div>
+    ${e.observaciones?`<div class="obs">📝 ${esc(e.observaciones)}</div>`:''}
+    <div class="table-scroll" style="margin-top:10px"><table class="dt"><thead><tr><th>Sector</th><th>Fenología</th><th class="n">CE obj</th><th class="n">CE SFR</th><th class="n">Desv. CE</th><th>Estado CE</th><th class="n">pH obj</th><th class="n">pH SFR</th><th class="n">Dif. pH</th><th>Estado pH</th></tr></thead>
+    <tbody>${res.map(r => `<tr><td><b>${esc(r.sector)}</b></td><td>${esc(r.fen||'–')}</td><td class="n">${f2(r.CE.obj)}</td><td class="n">${f2(r.CE.sfr)}</td><td class="n">${pct(r.CE.dev)}</td><td>${pill(r.CE.estado)}</td>
+      <td class="n">${f2(r.PH.obj)}</td><td class="n">${f2(r.PH.sfr)}</td><td class="n">${dif(r.PH.dev)}</td><td>${pill(r.PH.estado)}</td></tr>`).join('')}</tbody></table></div>
+    <div class="table-scroll" style="margin-top:10px"><table class="dt"><thead><tr><th>Sector</th><th>Estación</th>${profs.map(p=>`<th class="n">${esc(p)} CE</th><th class="n">${esc(p)} pH</th>`).join('')}</tr></thead>
+    <tbody>${fil.map(f => `<tr><td><b>${esc(f.sector)}</b></td><td>${esc(f.est)}</td>${profs.map(p=>c(f,p,'CE')+c(f,p,'PH')).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function accionHist(id, acc, btn){
+  const e = DATA.envios.find(x => x.id===id); if(!e) return;
+  if(acc==='editar') return editarEnvio(e);
+  if(acc==='eliminar') return eliminarEnvio(e);
+  if(acc==='pdf') return descargarPDF(e, btn);
+  abrirWhatsApp(regDesdeEnvio(e));
+}
+/* CSV con las mismas columnas que la hoja "Base de datos" del RI-FO-019 */
+function exportarCSV(){
+  const lista = enviosFiltrados(), sec = $('#hSector').value, DIAS = ['dom','lun','mar','mié','jue','vie','sáb'];
+  const rows = [['FECHA','CAMPAÑA','DÍA','FENOLOGIA','AÑO','SEMANA','DÍA-M','EJE X','SECTOR','MODULO','PARCELA','PROFUNIDAD','PH','CE','CONCAT','CÓDIGO','RESPONSABLE']];
+  [...lista].reverse().forEach(e => e.filas.filter(f=>!sec||f.sector===sec).forEach(f => {
+    const dia = DIAS[new Date(f.fecha+'T12:00:00Z').getUTCDay()];
+    const add = (p, ph, ce) => rows.push([fmtFecha(f.fecha), f.camp, dia, f.fen, f.anio, `S ${f.sem}`, f.diaM, f.ejeX, f.sector, f.modulo, f.parcela, p,
+                                          ph==null?'':String(ph).replace('.',','), ce==null?'':String(ce).replace('.',','), `S ${f.sem}-${f.anio}`, e.codigo, e.responsable]);
+    Object.keys(f.v).sort(ordenProf).forEach(p => add(p, f.v[p].PH, f.v[p].CE));
+    if(f.obj.CE!=null || f.obj.PH!=null) add(P_OBJ, f.obj.PH, f.obj.CE);
+  }));
+  const csv = '﻿' + rows.map(r => r.map(v => { v=String(v??''); return /[;"\n]/.test(v) ? `"${v.replace(/"/g,'""')}"` : v; }).join(';')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  a.download = `sondas_sfr_base_datos_${$('#hCamp').value||'todas'}.csv`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+
+/* =====================================================================
+   REPORTE PDF (una hoja A4)
+   ===================================================================== */
+async function descargarPDF(e, btn){
+  const txt = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Generando…'; }
+  try{
+    if(!(window.jspdf && window.jspdf.jsPDF && window.jspdf.jsPDF.API.autoTable))
+      await cargarLibs([['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js','https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js'],
+                        ['https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js','https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js']]);
+    generarPDF(e);
+  }catch(err){ alert(err.message); }
+  finally{ if(btn){ btn.disabled = false; btn.textContent = txt; } }
+}
+function generarPDF(e){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'a4' });
+  const W = 210, H = 297, M = 10, CW = W - 2*M;
+  const C = { verde:[15,107,76], verde2:[10,74,52], txt:[22,36,27], muted:[124,138,128], borde:[223,230,224],
+              err:[192,57,43], errBg:[248,226,223], warn:[138,90,21], warnBg:[250,237,215], ok:[30,142,90], okBg:[220,241,230], zebra:[247,250,247] };
+  const estilo = { NORMAL:[C.ok,C.okBg], ALERTA:[C.warn,C.warnBg], CRITICO:[C.err,C.errBg] };
+  const pinta = (d, est) => { const m = estilo[est]; if(m){ d.cell.styles.textColor = m[0]; d.cell.styles.fillColor = m[1]; d.cell.styles.fontStyle = 'bold'; } };
+  const rd = regDesdeEnvio(e), regs = rd.estaciones, res = resumenSectores(regs, rd.sectores);
+  const profs = [...new Set(regs.flatMap(r=>Object.keys(r.lect)))].sort(ordenProf);
+  const sinAscii = s => String(s).replace(/Δ/g,'Dif.').replace(/≤/g,'<=').replace(/≥/g,'>=').replace(/−/g,'-');
+
+  doc.setFillColor(...C.verde2); doc.rect(0, 0, W, 24, 'F');
+  doc.setFillColor(...C.verde); doc.rect(0, 24, W, 1, 'F');
+  doc.setTextColor(255); doc.setFont('helvetica','bold'); doc.setFontSize(15);
+  doc.text('SONDAS & S.F.R [pH-CE]', M, 11.5);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9);
+  doc.text('Riego  ·  HFE Berries Olmos  ·  RI-FO-019 V001', M, 18);
+  doc.setFont('helvetica','bold'); doc.setFontSize(15);
+  doc.text(fmtFecha(e.fecha), W-M, 11.5, { align:'right' });
+  doc.setFont('helvetica','normal'); doc.setFontSize(9);
+  doc.text(`${e.ejeX}  ·  Semana ${e.sem}${e.camp ? '  ·  Campaña ' + e.camp : ''}`, W-M, 18, { align:'right' });
+
+  let y = 31;
+  [['RESPONSABLE', e.responsable||'-'], ['ESTACIONES REGISTRADAS', `${regs.length} en ${res.length} sectores`], ['CÓDIGO DE REGISTRO', e.codigo||'Pendiente de asignar']].forEach((it,i) => {
+    const x = M + i*(CW/3);
+    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...C.muted); doc.text(it[0], x, y);
+    doc.setFont('helvetica', i===2?'bold':'normal'); doc.setFontSize(10); doc.setTextColor(...(i===2?C.verde:C.txt)); doc.text(String(it[1]), x, y+5);
+  });
+  y += 11.5;
+  const titulo = (t, yy) => { doc.setFillColor(...C.verde); doc.rect(M, yy-3.4, 1.3, 4.5, 'F'); doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(...C.verde2); doc.text(t, M+3.2, yy); };
+  const base = { theme:'grid', margin:{ left:M, right:M, top:10, bottom:8 },
+    styles:{ font:'helvetica', fontSize:7.4, cellPadding:{top:0.5,bottom:0.5,left:1,right:1}, halign:'center', valign:'middle', textColor:C.txt, lineColor:C.borde, lineWidth:0.2 },
+    headStyles:{ fillColor:C.verde, textColor:255, fontStyle:'bold', fontSize:7.2 }, alternateRowStyles:{ fillColor:C.zebra } };
+
+  titulo('Resumen por sector: SFR vs objetivo', y); y += 2.5;
+  doc.autoTable({ ...base, startY:y,
+    head:[['Sector','Fenología','CE obj','CE SFR','CE sondas','Desv. CE','Estado CE','pH obj','pH SFR','pH sondas','Dif. pH','Estado pH']],
+    body: res.map(r => [r.sector, r.fen||'-', f2n(r.CE.obj), f2n(r.CE.sfr), f2n(r.CE.son), pct(r.CE.dev), r.CE.estado||'N/D', f2n(r.PH.obj), f2n(r.PH.sfr), f2n(r.PH.son), dif(r.PH.dev), r.PH.estado||'N/D']),
+    columnStyles:{ 0:{fontStyle:'bold', textColor:C.verde2, halign:'left'}, 1:{halign:'left'} },
+    didParseCell: d => { if(d.section!=='body') return; const r = res[d.row.index];
+      if(d.column.index===5 || d.column.index===6) pinta(d, r.CE.estado); if(d.column.index===10 || d.column.index===11) pinta(d, r.PH.estado); } });
+  y = doc.lastAutoTable.finalY + 6;
+
+  titulo('Detalle por estación (CE / pH)', y); y += 2.5;
+  const yFirma = H - 22, yObs = yFirma - 18 - 11, yFin = yObs - 8;
+  const head = [['Sector','Módulo','Parcela', ...profs.flatMap(p=>[`${p} CE`,`${p} pH`])]];
+  const body = regs.map(r => [r.sector, r.modulo, r.parcela, ...profs.flatMap(p=>[f2n(r.lect[p]?.ce), f2n(r.lect[p]?.ph)])]);
+  const alto = Math.max(3.6, Math.min(6, (yFin - y - 6) / Math.max(1, body.length)));
+  const anchoVal = (CW - 26 - 22 - 14) / Math.max(1, profs.length*2);
+  const cs = { 0:{cellWidth:26, fontStyle:'bold', textColor:C.verde2, halign:'left'}, 1:{cellWidth:22}, 2:{cellWidth:14} };
+  for(let i=3;i<head[0].length;i++) cs[i] = { cellWidth:anchoVal };
+  doc.autoTable({ ...base, startY:y, head, body, columnStyles:cs,
+    styles:{ ...base.styles, minCellHeight:alto, fontSize: alto<4.2 ? 6.8 : 7.6 },
+    didParseCell: d => { if(d.section!=='body' || d.column.index<3) return; const k = d.column.index-3, p = profs[Math.floor(k/2)], V = k%2===0 ? 'CE' : 'PH';
+      if(p!==P_SFR) return; const r = regs[d.row.index], v = r.lect[p] ? r.lect[p][VARS[V].k] : null;
+      const est = estadoDe(V, VARS[V].dev(v, V==='CE' ? rd.sectores[r.sector].objCE : rd.sectores[r.sector].objPH));
+      if(est && est!=='NORMAL') pinta(d, est); } });
+  const yObsReal = Math.max(yObs, doc.lastAutoTable.finalY + 8);
+  if(yObsReal + 40 > H){ doc.addPage(); }
+  const yO = yObsReal + 40 > H ? 20 : yObsReal, yF = yO + 29;
+
+  titulo('Observaciones', yO - 3);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
+  const obs = doc.splitTextToSize(e.observaciones || 'Sin observaciones.', CW - 8).slice(0, 2);
+  doc.setDrawColor(...C.borde); doc.setFillColor(...C.zebra); doc.setLineWidth(0.25); doc.roundedRect(M, yO, CW, 11, 1.8, 1.8, 'FD');
+  doc.setFont('helvetica', e.observaciones ? 'normal':'italic'); doc.setTextColor(...(e.observaciones ? C.txt : C.muted)); doc.text(obs, M+4, yO+4.8);
+
+  const fw = 68;
+  [[M+8, 'Responsable del registro', e.responsable||''], [W-M-8-fw, 'V° B° Supervisor de Riego', '']].forEach(([x, lbl, nom]) => {
+    doc.setDrawColor(...C.muted); doc.setLineWidth(0.3); doc.line(x, yF, x+fw, yF);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(...C.txt); doc.text(lbl, x+fw/2, yF+4.5, { align:'center' });
+    if(nom){ doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...C.muted); doc.text(nom, x+fw/2, yF+8.5, { align:'center' }); }
+  });
+  doc.setDrawColor(...C.borde); doc.line(M, H-10, W-M, H-10);
+  doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(...C.muted);
+  doc.text(sinAscii(`CE: ${VARS.CE.umbral()} · pH: ${VARS.PH.umbral()}`), M, H-6.5);
+  doc.text(sinAscii(`Alerta 15-40 cm: CE >= ${PARAM.ceGap} · pH >= ${PARAM.phGap}`), M, H-3.5);
+  doc.text(`Generado: ${ahoraLimaTxt()} (hora Perú)`, W-M, H-6.5, { align:'right' });
+  doc.save(`Reporte_${e.codigo || ('Sondas_' + e.fecha)}.pdf`);
+  return doc;
+}
+function f2n(v){ return v==null ? '' : Number(v).toFixed(2); }
+
+/* =====================================================================
+   Demostración (solo si GAS_URL no está configurada)
+   ===================================================================== */
+function datosDemo(){
+  let seed = 11; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+  const raw = { envios:[], est:[], prof:[], fen:[], registros:[] };
+  const hoy = new Date(); hoy.setHours(12);
+  let n = 0;
+  for(let d=120; d>=0; d--){
+    const dt = new Date(hoy); dt.setDate(dt.getDate()-d);
+    if(![2,5].includes(dt.getDay())) continue;                 // martes y viernes
+    const iso = `${dt.getFullYear()}-${pad2(dt.getMonth()+1)}-${pad2(dt.getDate())}`;
+    const op = { id:'DEMO'+d, fecha:iso, responsable:['Juan Pérez','María Quispe'][n%2], observaciones:'', campana:'2627',
+                 codigo:`SND-${pad2(dt.getDate())}${pad2(dt.getMonth()+1)}${String(dt.getFullYear()).slice(2)}-0001`, sectores:{}, estaciones:[] };
+    SECTORES.forEach(s => op.sectores[s] = { fen: d>60 ? 'Floración' : 'Productiva', objCE: objPar(s,'CE'), objPH: objPar(s,'PH') });
+    ESTACIONES.forEach(e => {
+      const oc = objPar(e.sector,'CE') || 1, lect = {};
+      e.prof.forEach(p => { const z = parseFloat(p) || 0;
+        lect[p] = p===P_SFR ? { ce:+(oc*(0.82 + rnd()*0.32)).toFixed(2), ph:+(6.3 + rnd()*0.8).toFixed(2) }
+                            : { ce:+(oc*(0.7 + rnd()*0.5) + z/300).toFixed(2), ph:+(3.4 + z/40 + rnd()*0.9).toFixed(2) }; });
+      op.estaciones.push({ sector:e.sector, modulo:e.modulo, parcela:e.parcela, lect });
+    });
+    aplicarOpRaw(raw, op); n++;
+  }
+  return raw;
+}
+
+/* Init */
+montarDash(DASH.CE); montarDash(DASH.PH); marcarValChips();
+if(REPORTE){ iniciarReporte(); }
+else {
+renderFormulario();
+cargarBorrador();
+actualizarPendientes();
+reintentarPendientes(false);
+window.addEventListener('online', () => reintentarPendientes(false));
+setTimeout(() => { if(!DATA.cargado) cargarDatos(false); }, 1200);
+}
+if(!REPORTE && 'serviceWorker' in navigator && location.protocol === 'https:'){
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
